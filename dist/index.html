@@ -3,197 +3,163 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="Private prototype of the DKO–HET mouse liver single-cell atlas.">
-    <title>DKO–HET Liver Cell Atlas</title>
-    <link rel="stylesheet" href="styles.css">
+    <meta name="description" content="Single-cell transcriptomic and TCR resource for a spontaneous mouse model of autoimmune hepatitis.">
+    <title>Autoimmune Hepatitis Mouse Model Liver Immune Cell Atlas</title>
+    <link rel="icon" href="data:,">
+    <link rel="stylesheet" href="styles.css?v=20261108-3">
   </head>
   <body>
     <a class="skip-link" href="#main">Skip to content</a>
+
     <header class="site-header">
-      <a class="wordmark" href="#top" aria-label="DKO–HET Liver Cell Atlas home">
-        <span class="wordmark-mark" aria-hidden="true">L</span>
-        <span><strong>DKO–HET</strong><small>Liver Cell Atlas</small></span>
-      </a>
-      <nav aria-label="Primary navigation">
-        <a href="#explore">Explore</a>
-        <a href="#datasets">Datasets</a>
-        <a href="#methods">Methods</a>
+      <button class="brand" type="button" data-view-link="overview" aria-label="Atlas overview">
+        <span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></span>
+        <span><strong>AIH Mouse Atlas</strong><small>Liver immune cells</small></span>
+      </button>
+      <nav class="desktop-nav" aria-label="Primary navigation">
+        <button class="nav-link active" type="button" data-view-link="overview">Overview</button>
+        <details class="explore-menu">
+          <summary class="nav-link">Explore <span aria-hidden="true">⌄</span></summary>
+          <div class="menu-panel">
+            <button type="button" data-dataset-link="liver_broad"><strong>All liver immune cells</strong><small>Broad immune-cell atlas</small></button>
+            <button type="button" data-dataset-link="monomac"><strong>Monocytes &amp; Macrophages</strong><small>High-resolution myeloid states</small></button>
+            <div class="menu-group"><span>T cells</span></div>
+            <button type="button" data-dataset-link="t_cells"><strong>T-cell expression atlas</strong><small>CD4, CD8 and γδ states</small></button>
+            <button type="button" data-dataset-link="cd8_activated"><strong>Activated CD8 T cells</strong><small>High-resolution activated states</small></button>
+            <button type="button" data-dataset-link="tcr"><strong>TCR repertoire</strong><small>Expansion and top clonotypes</small></button>
+          </div>
+        </details>
+        <button class="nav-link" type="button" data-view-link="study">Study design</button>
+        <button class="nav-link" type="button" data-view-link="methods">Methods &amp; data</button>
       </nav>
-      <span class="status-pill">Private prototype</span>
+      <div class="header-actions">
+        <span class="private-pill">Private preview</span>
+        <button class="mobile-menu-button" id="mobile-menu-button" type="button" aria-expanded="false" aria-controls="mobile-nav">Menu</button>
+      </div>
+      <nav class="mobile-nav" id="mobile-nav" aria-label="Mobile navigation" hidden>
+        <button type="button" data-view-link="overview">Overview</button>
+        <button type="button" data-dataset-link="liver_broad">Explore atlas</button>
+        <button type="button" data-view-link="study">Study design</button>
+        <button type="button" data-view-link="methods">Methods &amp; data</button>
+      </nav>
     </header>
 
     <main id="main">
-      <section class="hero" id="top">
-        <div class="hero-copy">
-          <p class="eyebrow">Mouse liver · single-cell RNA sequencing</p>
-          <h1>Explore the immune landscape of DKO and HET liver.</h1>
-          <p class="hero-lede">A hierarchical atlas connecting the broad liver landscape to focused MonoMac, T-cell, CD8, and activated-CD8 states.</p>
-          <div class="hero-actions">
-            <a class="button button-primary" href="#explore">Explore activated CD8 cells</a>
-            <a class="button button-secondary" href="#datasets">View dataset hierarchy</a>
+      <section class="page-view overview-view active" data-view="overview" aria-labelledby="overview-title">
+        <div class="overview-copy">
+          <h1 id="overview-title">Autoimmune Hepatitis Mouse Model Liver Immune Cell Atlas</h1>
+          <p class="lead">Single-cell transcriptomic and TCR resource for a spontaneous mouse model of autoimmune hepatitis.</p>
+          <div class="overview-text">
+            <h2>Study overview</h2>
+            <p>Autoimmune hepatitis (AIH) is characterized by persistent sterile hepatic inflammation and progressive fibrosis, yet treatment relies on broad immunosuppression. The cellular mechanisms sustaining pathogenic autoreactive T-cell responses in the liver remain poorly defined, partly because few experimental models reproduce spontaneous disease progression. In this study, we introduced mice deficient in DNase II and the type I interferon receptor (<i>Dnase2a</i><sup>−/−</sup> <i>Ifnar1</i><sup>−/−</sup>) as a spontaneous model of type 1 autoimmune hepatitis recapitulating key features of human disease, including interface hepatitis, elevated ALT, progressive fibrosis, antinuclear antibodies, and hypergammaglobulinemia. Paired single-cell RNA sequencing and T-cell receptor sequencing were used to characterize the liver immune-cell landscape and connect T-cell transcriptional states with clonotype expansion.</p>
           </div>
-          <p class="prototype-note"><span aria-hidden="true">●</span> This private build uses frozen liver-only exports. Annotation wording and colors remain provisional.</p>
-        </div>
-        <div class="hero-figure" aria-label="Stylized overview of the atlas hierarchy">
-          <div class="orbit orbit-one"></div>
-          <div class="orbit orbit-two"></div>
-          <div class="cell-cloud cloud-one"></div>
-          <div class="cell-cloud cloud-two"></div>
-          <div class="cell-cloud cloud-three"></div>
-          <div class="figure-label label-broad">Broad atlas</div>
-          <div class="figure-label label-t">T cells</div>
-          <div class="figure-label label-cd8">Activated CD8</div>
-        </div>
-      </section>
-
-      <section class="metrics" aria-label="Release summary">
-        <div><strong>63,936</strong><span>cells in the broad atlas</span></div>
-        <div><strong>5</strong><span>validated liver datasets</span></div>
-        <div><strong>2</strong><span>genotypes: DKO and HET</span></div>
-        <div><strong>0</strong><span>spleen cells in version 1</span></div>
-      </section>
-
-      <section class="section datasets-section" id="datasets">
-        <div class="section-heading">
-          <div>
-            <p class="eyebrow">Navigate by biological resolution</p>
-            <h2>One atlas, two routes into detail.</h2>
+          <div class="overview-links">
+            <a class="primary-link" href="https://www.biorxiv.org/content/10.64898/2026.09.25.754422v1" target="_blank" rel="noreferrer">Read the preprint <span aria-hidden="true">↗</span></a>
+            <button class="secondary-link" type="button" data-dataset-link="liver_broad">Open the full explorer <span aria-hidden="true">→</span></button>
           </div>
-          <p>Each node is a separately analyzed dataset with its own frozen UMAP. Moving deeper changes resolution; it does not simply filter the parent embedding.</p>
+          <dl class="project-facts">
+            <div><dt>Organism</dt><dd>Mus musculus</dd></div>
+            <div><dt>Tissue</dt><dd>Liver</dd></div>
+            <div><dt>Conditions</dt><dd><span>AIH model (DKO): <i>Dnase2a</i><sup>−/−</sup> <i>Ifnar1</i><sup>−/−</sup></span><span>Control (Het): <i>Dnase2a</i><sup>+/−</sup> <i>Ifnar1</i><sup>−/−</sup></span></dd></div>
+            <div><dt>Contact</dt><dd><span>UMass Chan Medical School<br>Rothstein / Varanasi Lab</span><a href="mailto:kaiyuan.hao@umassmed.edu">kaiyuan.hao@umassmed.edu</a></dd></div>
+          </dl>
         </div>
 
-        <div class="atlas-map" role="group" aria-label="Dataset hierarchy">
-          <button class="atlas-node root-node" data-dataset="broad">
-            <span class="node-label">Broad liver atlas</span><strong>63,936 cells</strong><small>9 current annotations</small>
-          </button>
-          <div class="branch branch-left" aria-hidden="true"></div>
-          <div class="branch branch-right" aria-hidden="true"></div>
-          <button class="atlas-node mono-node" data-dataset="monomac">
-            <span class="node-label">MonoMacs</span><strong>5,648 cells</strong><small>6 current annotations</small>
-          </button>
-          <button class="atlas-node t-node" data-dataset="tcells">
-            <span class="node-label">Total T cells</span><strong>25,952 cells</strong><small>CD4, CD8 and γδ states</small>
-          </button>
-          <div class="branch branch-down-one" aria-hidden="true"></div>
-          <button class="atlas-node cd8-node" data-dataset="cd8">
-            <span class="node-label">Total CD8 T cells</span><strong>10,600 cells</strong><small>3 current annotations</small>
-          </button>
-          <div class="branch branch-down-two" aria-hidden="true"></div>
-          <button class="atlas-node active activated-node" data-dataset="activated">
-            <span class="node-label">Activated CD8 T cells</span><strong>3,683 cells</strong><small>Live in this prototype</small>
-          </button>
-        </div>
-
-        <div class="tcr-crosscut"><span>TCR repertoire module</span><p>Cross-cutting across total T cells, total CD8 T cells, and activated CD8 T cells; public clone definitions remain pending.</p></div>
-
-        <aside class="dataset-detail" aria-live="polite">
-          <div><span class="detail-index">05</span><span class="detail-status">Live explorer</span></div>
-          <div><h3 id="detail-title">Activated CD8 T cells</h3><p id="detail-copy">A focused view of stem-like, intermediate, effector, terminal, and tissue-resident memory-like activated CD8 states.</p></div>
-          <a id="detail-action" class="text-link" href="#explore">Open this explorer <span aria-hidden="true">→</span></a>
+        <aside class="overview-explorer" aria-labelledby="overview-explorer-title">
+          <div class="mini-heading">
+            <div><p class="kicker">Dataset overview</p><h2 id="overview-explorer-title">All liver immune cells</h2></div>
+            <span id="overview-cell-count">63,936 cells</span>
+          </div>
+          <div class="mini-toolbar">
+            <div class="search-control">
+              <label for="overview-gene">Search a gene</label>
+              <div><input id="overview-gene" list="overview-genes" value="Ptprc" autocomplete="off"><button id="overview-show-gene" type="button">Show</button></div>
+              <datalist id="overview-genes"></datalist>
+            </div>
+            <button class="text-button" id="overview-show-annotations" type="button">Subset Annotation</button>
+          </div>
+          <div class="condition-switch compact" data-condition-group="overview" aria-label="Homepage condition view">
+            <button class="selected" type="button" data-condition="all">Combined</button>
+            <button type="button" data-condition="HET">Control</button>
+            <button type="button" data-condition="DKO">AIH model</button>
+          </div>
+          <div class="mini-plot">
+            <canvas id="overview-canvas" aria-label="UMAP of all liver immune cells"></canvas>
+            <div class="plot-axis axis-x">UMAP 1</div><div class="plot-axis axis-y">UMAP 2</div>
+            <div class="canvas-tooltip" id="overview-tooltip" hidden></div>
+            <div class="expression-scale" id="overview-expression-scale" aria-label="Normalized expression scale" hidden><span id="overview-scale-high">High</span><i></i><span>0</span></div>
+          </div>
+          <p class="mini-help" id="overview-help">Population names are shown directly. Select <strong>Monocytes &amp; Macrophages</strong> or <strong>T cells</strong> to open the corresponding high-resolution explorer.</p>
         </aside>
       </section>
 
-      <section class="section explorer-section" id="explore">
-        <div class="section-heading explorer-heading">
+      <section class="page-view explore-view" data-view="explore" aria-labelledby="explore-title">
+        <div class="explore-header">
           <div>
-            <p class="eyebrow">Interactive prototype</p>
-            <h2>Activated CD8 T-cell explorer</h2>
+            <nav class="breadcrumbs" aria-label="Breadcrumb"><button type="button" data-dataset-link="liver_broad">All liver immune cells</button><span id="breadcrumb-tail"></span></nav>
+            <h1 id="explore-title">All liver immune cells</h1>
+            <p id="explore-description">A broad view of the liver immune landscape.</p>
           </div>
-          <p>3,683 liver cells · preserved source UMAP · <span class="method-chip">RNA / data</span></p>
+          <div class="dataset-select-wrap"><label for="dataset-select">Explorer</label><select id="dataset-select"><option value="liver_broad">All liver immune cells</option><option value="monomac">Monocytes &amp; Macrophages</option><option value="t_cells">T-cell expression atlas</option><option value="cd8_activated">Activated CD8 T cells</option><option value="tcr">TCR repertoire</option></select></div>
         </div>
 
-        <div class="explorer-shell">
+        <div class="expression-workspace" id="expression-workspace">
           <div class="explorer-toolbar">
-            <label>Dataset
-              <select id="dataset-select">
-                <option value="activated">Activated CD8 T cells — live</option>
-                <option disabled>Total CD8 T cells — integration pending</option>
-                <option disabled>Total T cells — integration pending</option>
-                <option disabled>MonoMacs — integration pending</option>
-                <option disabled>Broad liver atlas — integration pending</option>
-              </select>
-            </label>
-            <fieldset class="segmented" aria-label="Filter by genotype">
-              <legend>Genotype</legend>
-              <button class="selected" data-genotype="All">All</button>
-              <button data-genotype="DKO">DKO</button>
-              <button data-genotype="HET">HET</button>
-            </fieldset>
-            <label>Color cells by
-              <select id="color-select">
-                <option value="annotation">Cell state</option>
-                <option value="genotype">Genotype</option>
-                <option value="gene">Gene expression</option>
-              </select>
-            </label>
-            <label id="gene-control">Summary gene
-              <select id="gene-select"></select>
-            </label>
+            <div class="search-control grow"><label for="explore-gene">Gene of interest</label><div><input id="explore-gene" list="explore-genes" value="Ptprc" autocomplete="off"><button id="explore-show-gene" type="button">Show gene</button></div><datalist id="explore-genes"></datalist></div>
+            <div><span class="control-label">Cells displayed</span><div class="condition-switch" data-condition-group="explore" aria-label="Explorer condition view"><button class="selected" type="button" data-condition="all">Combined</button><button type="button" data-condition="HET">Control (Het)</button><button type="button" data-condition="DKO">AIH model (DKO)</button></div></div>
+            <button class="gene-panel-button" id="open-gene-panel" type="button"><span aria-hidden="true">＋</span><strong>Build a gene panel</strong><small>Compare multiple genes</small></button>
           </div>
 
-          <div class="explorer-grid">
-            <div class="umap-panel">
-              <div class="panel-title"><div><span>UMAP</span><strong id="plot-title">Colored by cell state</strong></div><span id="visible-count">3,683 cells</span></div>
-              <div class="canvas-wrap">
-                <canvas id="umap-canvas" aria-label="Interactive UMAP of activated CD8 T cells"></canvas>
-                <div id="tooltip" class="tooltip" hidden></div>
-                <span class="axis-label axis-x">UMAP 1</span><span class="axis-label axis-y">UMAP 2</span>
-              </div>
+          <div class="single-gene-view" id="single-gene-view">
+            <div class="paired-plots">
+              <article class="plot-card"><header><div><span>Cell populations</span><h2>Annotated UMAP</h2></div><strong id="annotation-count">— cells</strong></header><div class="plot-frame"><canvas id="annotation-canvas" aria-label="Annotated UMAP"></canvas><div class="plot-axis axis-x">UMAP 1</div><div class="plot-axis axis-y">UMAP 2</div><div class="canvas-tooltip" id="annotation-tooltip" hidden></div></div><p class="plot-note" id="drilldown-note">Population labels are drawn directly on the UMAP.</p></article>
+              <article class="plot-card"><header><div><span>Gene expression</span><h2 id="feature-title">Ptprc</h2></div><strong id="feature-condition">Combined</strong></header><div class="plot-frame"><canvas id="feature-canvas" aria-label="Gene expression FeaturePlot"></canvas><div class="expression-scale" aria-label="Normalized expression scale"><span id="feature-scale-high">High</span><i></i><span>0</span></div><div class="plot-axis axis-x">UMAP 1</div><div class="plot-axis axis-y">UMAP 2</div><div class="canvas-tooltip" id="feature-tooltip" hidden></div></div><p class="plot-note">Normalized RNA expression. Both condition views use a shared scale.</p></article>
             </div>
-            <aside class="legend-panel">
-              <div class="panel-title"><div><span>Legend</span><strong id="legend-title">Cell state</strong></div></div>
-              <div id="legend" class="legend"></div>
-              <div class="selection-note">
-                <span class="selection-icon" aria-hidden="true">i</span>
-                <p>Hover over a cell to inspect its state, genotype, sample, and selected-gene value.</p>
-              </div>
-            </aside>
+            <div class="summary-row">
+              <article class="summary-card expression-summary-card"><header><div><span>Selected gene</span><h2 id="expression-summary-title">Ptprc by population and condition</h2></div><div class="condition-key" aria-label="Condition color key"><span><i class="control"></i>Het</span><span><i class="aih"></i>DKO</span></div></header><div class="metric-grid"><div><h3>Mean normalized expression <small>± cell-level SEM</small></h3><div id="mean-expression-bars" class="paired-bar-chart"></div></div><div><h3>Cells expressing (%)</h3><div id="percent-expression-bars" class="paired-bar-chart"></div></div></div><p class="summary-note">Summaries are descriptive and calculated across displayed cells; error bars do not represent variation between animals.</p></article>
+            </div>
           </div>
 
-          <div class="summary-grid">
-            <article class="summary-card expression-card">
-              <div class="panel-title"><div><span>Expression summary</span><strong id="summary-title">Slamf6 by cell state</strong></div><small>Mean normalized expression</small></div>
-              <div id="expression-bars" class="bar-chart" aria-label="Expression summary by cell state"></div>
-            </article>
-            <article class="summary-card caveat-card">
-              <p class="eyebrow">Interpret with context</p>
-              <h3>Activated cells are genotype-imbalanced.</h3>
-              <p>DKO contributes 3,547 cells and HET contributes 136 cells. Cell counts are descriptive; biological inference must use the appropriate sample-level analysis.</p>
-              <div class="composition-bar" aria-label="DKO 96.3 percent, HET 3.7 percent"><span style="width:96.3%"></span></div>
-              <div class="composition-labels"><span>DKO 96.3%</span><span>HET 3.7%</span></div>
-            </article>
+          <section class="gene-panel-view" id="gene-panel-view" hidden aria-labelledby="gene-panel-title">
+            <header class="gene-panel-header"><div><button class="back-link" id="close-gene-panel" type="button">← Single-gene view</button><h2 id="gene-panel-title">Gene panel</h2><p>Compare up to six genes within the current dataset and condition.</p></div><div class="add-gene-control"><label for="panel-gene-input">Add gene</label><div><input id="panel-gene-input" list="panel-genes" autocomplete="off"><button id="add-panel-gene" type="button">Add</button></div><datalist id="panel-genes"></datalist></div></header>
+            <div id="gene-chips" class="gene-chips"></div>
+            <div class="panel-tabs" role="tablist" aria-label="Gene panel visualization"><button class="selected" type="button" data-panel-tab="features">FeaturePlots</button><button type="button" data-panel-tab="dotplot">Dot plot</button><button type="button" data-panel-tab="heatmap">Heatmap</button></div>
+            <div id="panel-content" class="panel-content"></div>
+          </section>
+
+          <section class="overlay-view" id="overlay-view" hidden aria-labelledby="overlay-title">
+            <header><div><button class="back-link" id="close-overlay" type="button">← Gene panel</button><h2 id="overlay-title">Two-gene overlap</h2><p>Compare the original FeaturePlots with cells expressing both genes.</p></div><label>Overlay with<select id="overlay-partner"></select></label></header>
+            <div class="overlay-grid" id="overlay-grid"></div>
+          </section>
+        </div>
+
+        <div class="tcr-workspace" id="tcr-workspace" hidden>
+          <div class="tcr-toolbar">
+            <div><span class="control-label">TCR view</span><div class="condition-switch" id="tcr-mode"><button class="selected" type="button" data-tcr-mode="expansion">Clone size overview</button><button type="button" data-tcr-mode="clones">Top 10 expanded clones</button></div></div>
+            <div><span class="control-label">Cells displayed</span><div class="condition-switch" data-condition-group="tcr"><button class="selected" type="button" data-condition="all">Combined</button><button type="button" data-condition="HET">Control (Het)</button><button type="button" data-condition="DKO">AIH model (DKO)</button></div></div>
           </div>
+          <div class="paired-plots tcr-plots">
+            <article class="plot-card"><header><div><span>TCR analysis</span><h2 id="tcr-plot-title">Colored by expansion status</h2></div><strong id="tcr-cell-count">— cells</strong></header><div class="tcr-key" id="tcr-key"></div><div class="plot-frame"><canvas id="tcr-canvas" aria-label="TCR expansion UMAP"></canvas><div class="plot-axis axis-x">UMAP 1</div><div class="plot-axis axis-y">UMAP 2</div><div class="canvas-tooltip" id="tcr-tooltip" hidden></div></div></article>
+            <article class="plot-card"><header><div><span>Cell-state reference</span><h2>Activated CD8 T cells</h2></div><strong>Annotated UMAP</strong></header><div class="plot-frame"><canvas id="tcr-reference-canvas" aria-label="Activated CD8 cell-state UMAP"></canvas><div class="plot-axis axis-x">UMAP 1</div><div class="plot-axis axis-y">UMAP 2</div></div><p class="plot-note">The same coordinates are used in both panels.</p></article>
+          </div>
+          <article class="clone-table-card" id="clone-table-card" hidden><header><div><span>Sequence details</span><h2>Top 10 expanded clones</h2></div><small>Sample-aware paired CDR3 amino-acid identity</small></header><div class="table-scroll"><table><thead><tr><th>Rank</th><th>Clone</th><th>Cells</th><th>Sample</th><th>Condition</th><th>CDR3α</th><th>CDR3β</th></tr></thead><tbody id="clone-table-body"></tbody></table></div></article>
         </div>
       </section>
 
-      <section class="section methods-section" id="methods">
-        <div class="section-heading">
-          <div><p class="eyebrow">Transparent by design</p><h2>What this prototype shows—and what it does not.</h2></div>
-        </div>
-        <div class="method-grid">
-          <article><span>01</span><h3>Frozen analyzed datasets</h3><p>The portal reads versioned exports and preserves each source object’s UMAP. It does not recluster cells in the browser.</p></article>
-          <article><span>02</span><h3>Liver-only scope</h3><p>Spleen reference cells remain in some source objects but are excluded from every version 1 portal product.</p></article>
-          <article><span>03</span><h3>Expression is descriptive</h3><p>Gene gradients show normalized RNA expression. They do not represent significance or biological-replicate tests.</p></article>
-          <article><span>04</span><h3>TCR release is pending</h3><p>The TCR module spans the T-cell branch, but clone identity and public fields must be frozen before it is enabled.</p></article>
-        </div>
+      <section class="page-view study-view" data-view="study" aria-labelledby="study-title">
+        <div class="narrow-header"><p class="eyebrow">Study design</p><h1 id="study-title">From spontaneous liver inflammation to a navigable immune-cell atlas</h1><p class="lead">The atlas accompanies a study of a spontaneous autoimmune-hepatitis-like mouse model and connects broad immune remodeling with focused myeloid, T-cell, and TCR analyses.</p></div>
+        <div class="study-flow" aria-label="Study workflow"><article><span>01</span><h2>Mouse model</h2><p>AIH model (DKO) and Control (Het) mice provide the biological comparison.</p></article><i aria-hidden="true">→</i><article><span>02</span><h2>Liver immune profiling</h2><p>Single-cell RNA sequencing maps immune populations and transcriptional states.</p></article><i aria-hidden="true">→</i><article><span>03</span><h2>Focused resolution</h2><p>Monocyte/macrophage and T-cell subsets are reanalyzed at higher resolution.</p></article><i aria-hidden="true">→</i><article><span>04</span><h2>TCR context</h2><p>Activated CD8 states are linked to clonal expansion and paired CDR3 sequences.</p></article></div>
+        <div class="study-context"><div><p class="kicker">Biological question</p><h2>How does chronic innate immune activation reshape the liver immune compartment and sustain pathogenic T-cell responses?</h2></div><div><p>The atlas is designed as an extension of the manuscript: readers can move beyond the figures, search their own genes of interest, compare conditions, and locate expanded T-cell clonotypes within the activated-CD8 landscape.</p><a href="https://www.biorxiv.org/content/10.64898/2026.09.25.754422v1" target="_blank" rel="noreferrer">Open the preprint ↗</a></div></div>
       </section>
 
-      <section class="section release-section">
-        <div><p class="eyebrow">Release private-prototype-0.1.0</p><h2>Data prepared for reproducible exploration.</h2></div>
-        <div class="release-list">
-          <div><span>AnnData / Zarr</span><strong>Validated</strong></div>
-          <div><span>Public sample names</span><strong>Approval pending</strong></div>
-          <div><span>TCR clonotypes</span><strong>Definition pending</strong></div>
-          <div><span>Public downloads</span><strong>Not released</strong></div>
-        </div>
+      <section class="page-view methods-view" data-view="methods" aria-labelledby="methods-title">
+        <div class="narrow-header"><p class="eyebrow">Methods &amp; data</p><h1 id="methods-title">Transparent data scope and interpretation</h1><p class="lead">Version 1 is liver-only and preserves the analyzed UMAP coordinates and reviewed working annotations from each source object.</p></div>
+        <div class="methods-grid"><article><span>Data scope</span><h2>Liver immune cells only</h2><p>Spleen cells present in some source objects are excluded from every atlas level shown here.</p></article><article><span>Expression</span><h2>Normalized RNA data</h2><p>FeaturePlots and summaries use the Seurat RNA assay data layer. They are descriptive visualizations, not significance tests.</p></article><article><span>Embeddings</span><h2>Preserved source UMAPs</h2><p>Each level is a separately analyzed dataset with its own frozen UMAP. Moving deeper changes resolution rather than filtering the parent embedding.</p></article><article><span>Gene summaries</span><h2>Condition-aware expression</h2><p>Mean normalized expression and the percentage of expressing cells are shown separately for Het and DKO. Cell-level error bars are descriptive and do not represent variation between animals.</p></article><article><span>TCR</span><h2>Sample-aware clones</h2><p>The private preview defines displayed clones by biological sample and paired amino-acid CDR3 identity.</p></article><article><span>Release status</span><h2>Private review build</h2><p>Annotations, public sample labels, downloadable matrices, and the final clonotype release remain subject to manuscript sign-off.</p></article></div>
+        <div class="data-table"><div><strong>Atlas level</strong><strong>Cells</strong><strong>Purpose</strong></div><div><span>All liver immune cells</span><span>63,936</span><span>Broad immune landscape</span></div><div><span>Monocytes &amp; Macrophages</span><span>5,648</span><span>High-resolution myeloid states</span></div><div><span>T-cell expression atlas</span><span>25,952</span><span>CD4, CD8 and γδ states</span></div><div><span>Activated CD8 T cells</span><span>3,683</span><span>Activated states and TCR mapping</span></div></div>
       </section>
     </main>
 
-    <footer>
-      <div class="wordmark footer-mark"><span class="wordmark-mark" aria-hidden="true">L</span><span><strong>DKO–HET</strong><small>Liver Cell Atlas</small></span></div>
-      <p>Private lab prototype · Not for citation or redistribution</p>
-      <a href="#top">Back to top ↑</a>
-    </footer>
-    <script src="app.js"></script>
+    <footer><div><strong>AIH Mouse Liver Immune Cell Atlas</strong><p>Private manuscript companion preview</p></div><div><span>Contact</span><a href="mailto:kaiyuan.hao@umassmed.edu">kaiyuan.hao@umassmed.edu</a></div><button type="button" data-view-link="overview">Back to overview ↑</button></footer>
+    <script src="app.js?v=20261108-3"></script>
   </body>
 </html>
