@@ -27,6 +27,15 @@ const DATASETS = {
     description: "High-resolution monocyte and macrophage populations.",
     denominator: "Composition among recovered monocytes and macrophages",
     colors: ["#cf7a4e", "#6b9166", "#7296bd", "#ba6c7c", "#ab8958", "#8a74a8"],
+    labelStyle: "external",
+    labelOffsets: {
+      "SLAMF9+ Macrophages": [0, -48],
+      "Kupffer cells": [62, 34],
+      "Trans.Monocytes": [-62, -20],
+      "Classical Monocytes": [-66, 34],
+      "Patrol.Monocytes": [-62, -32],
+      "Trans.Macrophages": [40, -34]
+    },
     drilldown: {}, breadcrumb: ["Monocytes & Macrophages"]
   },
   t_cells: {
@@ -35,6 +44,20 @@ const DATASETS = {
     description: "CD4, CD8, regulatory, proliferating, and γδ T-cell states.",
     denominator: "Composition among recovered T cells",
     colors: ["#739fcb", "#b087bf", "#d96c64", "#69a987", "#d6a542", "#8ab7d2", "#77a8d1", "#a89a60", "#cf7f55", "#77a06d", "#b7748a"],
+    labelStyle: "external",
+    labelOffsets: {
+      "GZMK+ CD8+ Tex": [-72, 24],
+      "RORg+ gd T cells": [8, 54],
+      "Naive CD8+ T cells": [18, -48],
+      "ITGA1+ CD4+ T cells": [-70, -12],
+      "CD40LG+ CD4+ T cells": [26, 36],
+      "CD8aa IELs": [-55, -42],
+      "Treg": [4, 50],
+      "Naive CD4+ T cells": [76, -4],
+      "Proliferating T cells": [58, -48],
+      "KLRG1+ CD8+ Teff": [-86, 26],
+      "Naive gd T cells": [-12, -42]
+    },
     drilldown: {"GZMK+ CD8+ Tex": "cd8_activated", "KLRG1+ CD8+ Teff": "cd8_activated"},
     breadcrumb: ["T cells"]
   },
@@ -44,6 +67,14 @@ const DATASETS = {
     description: "Stem-like, intermediate, effector, terminal, and tissue-resident memory-like activated states.",
     denominator: "Composition among recovered activated CD8 T cells",
     colors: ["#4f9a68", "#9bcf8d", "#d7a33d", "#8f7d45", "#c4a8bc"],
+    labelStyle: "external",
+    labelOffsets: {
+      "Trm": [68, 12],
+      "Intermediate": [70, -8],
+      "Terminal": [-26, -48],
+      "Teff": [42, 46],
+      "Stem-like": [-62, 8]
+    },
     drilldown: {}, breadcrumb: ["T cells", "Activated CD8 T cells"]
   }
 };
