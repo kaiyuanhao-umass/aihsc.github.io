@@ -410,5 +410,30 @@ function renderTcr() {
   if(tcrMode==="clones") document.querySelector("#clone-table-body").innerHTML=top.map(([cloneIndex,count],rank)=>{const clone=currentData.clones[cloneIndex];return `<tr><td><i class="clone-swatch" style="background:${CLONE_COLORS[rank]}"></i> ${rank+1}</td><td>${escapeHtml(clone.id)}</td><td>${count}</td><td>${escapeHtml(clone.sample)}</td><td>${clone.genotype==="DKO"?"AIH model":"Control"}</td><td class="sequence">${escapeHtml(clone.cdr3_alpha||"—")}</td><td class="sequence">${escapeHtml(clone.cdr3_beta||"—")}</td></tr>`;}).join("");
 }
 
-initOverview();
-const initialHash=location.hash.replace("#","");if(initialHash==="explore")goDataset("liver_broad");else if(["study","methods"].includes(initialHash))showView(initialHash,false);else showView("overview",false);
+let atlasStarted=false;
+function startAtlas() {
+  if(atlasStarted)return;
+  atlasStarted=true;
+  initOverview();
+  const initialHash=location.hash.replace("#","");if(initialHash==="explore")goDataset("liver_broad");else if(["study","methods"].includes(initialHash))showView(initialHash,false);else showView("overview",false);
+}
+
+const ACCESS_PASSWORD_HASH="8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92";
+async function sha256(value) {
+  const bytes=new TextEncoder().encode(value);
+  const digest=await crypto.subtle.digest("SHA-256",bytes);
+  return [...new Uint8Array(digest)].map(byte=>byte.toString(16).padStart(2,"0")).join("");
+}
+function revealAtlas() {
+  sessionStorage.setItem("aih-atlas-access","granted");
+  document.body.classList.remove("site-locked");
+  document.querySelector("#access-gate").hidden=true;
+  startAtlas();
+}
+document.querySelector("#access-form").addEventListener("submit",async event=>{
+  event.preventDefault();
+  const input=document.querySelector("#access-password"),error=document.querySelector("#access-error");
+  if(await sha256(input.value)===ACCESS_PASSWORD_HASH){input.setAttribute("aria-invalid","false");revealAtlas();return;}
+  input.setAttribute("aria-invalid","true");input.value="";error.hidden=false;input.focus();
+});
+if(sessionStorage.getItem("aih-atlas-access")==="granted")revealAtlas();

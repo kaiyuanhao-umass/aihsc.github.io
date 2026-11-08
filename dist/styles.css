@@ -19,6 +19,18 @@
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
 body { margin: 0; color: var(--ink); background: var(--paper); font-family: var(--sans); line-height: 1.5; }
+body.site-locked { overflow: hidden; }
+body.site-locked > :not(.access-gate) { display: none !important; }
+.access-gate { position: fixed; inset: 0; z-index: 1000; display: grid; place-items: center; padding: 1.5rem; background: var(--paper); }
+.access-card { width: min(520px, 100%); padding: clamp(2rem, 5vw, 3.5rem); background: var(--surface); border: 1px solid #cfd5cf; }
+.access-mark { display: inline-flex; width: 42px; height: 42px; margin-bottom: 1.6rem; }
+.access-card h1 { margin-bottom: .8rem; font-size: clamp(1.8rem, 4vw, 2.7rem); font-weight: 540; line-height: 1.1; letter-spacing: -.025em; }
+.access-card > p:not(.eyebrow) { margin-bottom: 1.8rem; color: var(--muted); font-size: .82rem; }
+.access-card form label { display: block; margin-bottom: .35rem; color: var(--muted); font-size: .62rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+.access-card form > div { display: flex; }
+.access-card input { min-width: 0; flex: 1; height: 44px; padding: .65rem .75rem; border: 1px solid #bfc9c1; border-radius: 3px 0 0 3px; }
+.access-card button { min-height: 44px; padding: .65rem 1rem; color: white; background: var(--green-dark); border: 1px solid var(--green-dark); border-radius: 0 3px 3px 0; font-size: .74rem; font-weight: 750; cursor: pointer; }
+.access-error { margin: .55rem 0 0; color: #9b2f2f; font-size: .68rem; }
 button, input, select { font: inherit; }
 button { color: inherit; }
 a { color: inherit; }
