@@ -68,7 +68,8 @@ const DATASETS = {
     title: "Activated CD8 T cells",
     description: "Stem-like, intermediate, effector, terminal, and tissue-resident memory-like activated states.",
     denominator: "Composition among recovered activated CD8 T cells",
-    colors: ["#4f9a68", "#9bcf8d", "#d7a33d", "#8f7d45", "#c4a8bc"],
+    colors: ["#f0cd9b", "#71a672", "#b5af78", "#7ea4b8", "#d19243"],
+    subsetOrder: ["Stem-like", "Intermediate", "Terminal", "Trm", "Teff"],
     labelStyle: "external",
     labelOffsets: {
       "Trm": [68, 12],
@@ -93,7 +94,20 @@ const DISPLAY_LABELS = {
   "RORg+ gd T cells": "RORγ⁺ γδ T cells",
   "Naive gd T cells": "Naive γδ T cells",
   "CD8aa IELs": "CD8αα IELs",
-  "SLAMF9+ Macrophages": "MoMacs"
+  "SLAMF9+ Macrophages": "MoMacs",
+  "Stem-like": "TSCM",
+  "Intermediate": "TINT",
+  "Terminal": "TTER",
+  "Trm": "TRM",
+  "Teff": "TSLEC"
+};
+
+const DISPLAY_LABEL_PARTS = {
+  "Stem-like": ["T", "SCM"],
+  "Intermediate": ["T", "INT"],
+  "Terminal": ["T", "TER"],
+  "Trm": ["T", "RM"],
+  "Teff": ["T", "SLEC"]
 };
 
 const CONDITION_LABELS = {all: "Combined", HET: "Control (Het)", DKO: "AIH model (DKO)"};
@@ -121,6 +135,7 @@ let tcrMode = "expansion";
 
 function displayLabel(value) { return DISPLAY_LABELS[value] || value; }
 function escapeHtml(value) { return String(value ?? "").replace(/[&<>'"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[c])); }
+function displayLabelHtml(value) { const parts=DISPLAY_LABEL_PARTS[value]; return parts?`${escapeHtml(parts[0])}<sub>${escapeHtml(parts[1])}</sub>`:escapeHtml(displayLabel(value)); }
 function conditionMatches(row, condition) { return condition === "all" || row[3] === CONDITION_INDEX[condition]; }
 function comma(value) { return Number(value).toLocaleString(); }
 function scaleLabel(value) { return value >= 10 ? value.toFixed(0) : value >= 1 ? value.toFixed(1) : value.toFixed(2); }
@@ -236,16 +251,19 @@ class UmapPlot {
     const counts = new Map(); visible.forEach(row => counts.set(row[2], (counts.get(row[2])||0)+1));
     this.data.annotations.forEach((annotation, index) => {
       if (!counts.get(index)) return;
-      const label = displayLabel(annotation.name);
+      const label = displayLabel(annotation.name); const labelParts=DISPLAY_LABEL_PARTS[annotation.name];
       const maxLabelLength=config.labelStyle==="external"?18:24;
       const words = label.split(" "); const lines=[]; let line="";
       words.forEach(word => { const next=(line+" "+word).trim(); if(next.length>maxLabelLength && line){lines.push(line);line=word;}else line=next; }); if(line) lines.push(line);
       const baseX=tr.x(annotation.x), baseY=tr.y(annotation.y);
       const offset=config.labelOffsets?.[annotation.name] || [0,0];
       let x=baseX+offset[0], y=baseY+offset[1]; const fontSize=config.labelFontSize ?? (config.labelStyle==="external"?(this.data.total_cells>20000?14:15):(this.data.total_cells>20000?10.5:11.5));
-      this.ctx.font=`700 ${fontSize}px ${getComputedStyle(document.body).fontFamily}`;
+      const fontFamily=getComputedStyle(document.body).fontFamily;
+      this.ctx.font=`700 ${fontSize}px ${fontFamily}`;
       this.ctx.textAlign="center"; this.ctx.textBaseline="middle";
-      const width=Math.max(...lines.map(value=>this.ctx.measureText(value).width))+12; const height=lines.length*(fontSize+2)+8;
+      let richWidth=0;
+      if(labelParts){this.ctx.font=`700 ${fontSize}px ${fontFamily}`;richWidth=this.ctx.measureText(labelParts[0]).width;this.ctx.font=`700 ${fontSize*.7}px ${fontFamily}`;richWidth+=this.ctx.measureText(labelParts[1]).width;this.ctx.font=`700 ${fontSize}px ${fontFamily}`;}
+      const width=(labelParts?richWidth:Math.max(...lines.map(value=>this.ctx.measureText(value).width)))+12; const height=(labelParts?fontSize+4:lines.length*(fontSize+2))+8;
       x=Math.max(width/2+5,Math.min(this.canvas.clientWidth-width/2-5,x));
       y=Math.max(height/2+5,Math.min(this.canvas.clientHeight-height/2-5,y));
       const labelColor=config.colors[index % config.colors.length];
@@ -253,7 +271,11 @@ class UmapPlot {
         this.ctx.beginPath(); this.ctx.moveTo(baseX,baseY); this.ctx.lineTo(x,y); this.ctx.strokeStyle=labelColor; this.ctx.globalAlpha=.7; this.ctx.lineWidth=1.2; this.ctx.stroke(); this.ctx.globalAlpha=1;
       }
       this.ctx.strokeStyle="rgba(255,255,255,.96)"; this.ctx.lineWidth=config.labelStyle==="external"?3.5:5;
-      lines.forEach((value,lineIndex)=>{const ly=y+(lineIndex-(lines.length-1)/2)*(fontSize+2);this.ctx.strokeText(value,x,ly);this.ctx.fillStyle=config.labelStyle==="external"?labelColor:"#183027";this.ctx.fillText(value,x,ly);});
+      if(labelParts){
+        const main=labelParts[0], suffix=labelParts[1], start=x-richWidth/2;
+        this.ctx.textAlign="left";this.ctx.font=`700 ${fontSize}px ${fontFamily}`;this.ctx.strokeText(main,start,y);this.ctx.fillStyle=config.labelStyle==="external"?labelColor:"#183027";this.ctx.fillText(main,start,y);
+        const mainWidth=this.ctx.measureText(main).width;this.ctx.font=`700 ${fontSize*.7}px ${fontFamily}`;this.ctx.strokeText(suffix,start+mainWidth,y+fontSize*.24);this.ctx.fillText(suffix,start+mainWidth,y+fontSize*.24);this.ctx.textAlign="center";this.ctx.font=`700 ${fontSize}px ${fontFamily}`;
+      } else lines.forEach((value,lineIndex)=>{const ly=y+(lineIndex-(lines.length-1)/2)*(fontSize+2);this.ctx.strokeText(value,x,ly);this.ctx.fillStyle=config.labelStyle==="external"?labelColor:"#183027";this.ctx.fillText(value,x,ly);});
       this.labelBoxes.push({x:x-width/2,y:y-height/2,width,height,index,name:annotation.name,clickable:Boolean(config.drilldown[annotation.name]),count:counts.get(index)});
     });
   }
@@ -265,7 +287,7 @@ class UmapPlot {
     if (!this.tooltip) return;
     if (!hit) {this.tooltip.hidden=true;return;}
     this.tooltip.hidden=false; this.tooltip.style.left=`${Math.max(8,Math.min(this.canvas.clientWidth-175,hit.x+hit.width+8))}px`; this.tooltip.style.top=`${Math.max(8,hit.y-4)}px`;
-    this.tooltip.innerHTML=`<strong>${escapeHtml(displayLabel(hit.name))}</strong><span>${comma(hit.count)} displayed cells</span>${hit.clickable?"<span>Open high-resolution explorer →</span>":""}`;
+    this.tooltip.innerHTML=`<strong>${displayLabelHtml(hit.name)}</strong><span>${comma(hit.count)} displayed cells</span>${hit.clickable?"<span>Open high-resolution explorer →</span>":""}`;
   }
   pointerClick(event) { const hit=this.hitLabel(event); if(hit?.clickable && this.options.onLabelClick) this.options.onLabelClick(hit.name); }
 }
@@ -355,15 +377,20 @@ function expressionStats(gene, condition=null) {
     const rows=currentData.cells.filter(row=>row[2]===annotationIndex && (!condition||conditionMatches(row,condition)));
     const sum=rows.reduce((total,row)=>total+row[index],0); const positive=rows.filter(row=>row[index]>0).length; const mean=rows.length?sum/rows.length:0;
     const squared=rows.reduce((total,row)=>total+(row[index]-mean)**2,0); const sem=rows.length>1?Math.sqrt(squared/(rows.length-1))/Math.sqrt(rows.length):0;
-    return {name:displayLabel(annotation.name),mean,sem,percent:rows.length?positive/rows.length*100:0};
+    return {name:displayLabel(annotation.name),rawName:annotation.name,mean,sem,percent:rows.length?positive/rows.length*100:0};
   });
 }
 
 function renderExpressionSummary() {
   const control=expressionStats(currentGene,"HET"), aih=expressionStats(currentGene,"DKO");
+  const subsetOrder=DATASETS[currentDatasetId]?.subsetOrder;
+  if(subsetOrder) {
+    const rank=name=>{const index=subsetOrder.indexOf(name);return index<0?subsetOrder.length:index;};
+    [control,aih].forEach(items=>items.sort((a,b)=>rank(a.rawName)-rank(b.rawName)));
+  }
   const maxMean=Math.max(.001,...control.map(x=>x.mean+x.sem),...aih.map(x=>x.mean+x.sem));
   const renderEntry=(item,key,max,group,withError)=>{const value=item[key];const width=Math.min(100,value/max*100);const errorLeft=Math.max(0,(value-(withError?item.sem:0))/max*100);const errorWidth=withError?Math.min(100-errorLeft,item.sem*2/max*100):0;const valueLeft=Math.min(100,withError?(value+item.sem)/max*100:width);const label=key==="mean"?value.toFixed(2):value.toFixed(0)+"%";return `<div class="metric-entry"><div class="metric-line ${group}" style="--bar-width:${width}%;--error-left:${errorLeft}%;--error-width:${errorWidth}%;--value-left:${valueLeft}%"><i></i>${withError?'<b class="metric-error" aria-hidden="true"></b>':""}<small class="metric-value">${label}</small></div></div>`;};
-  const renderMetric=(key,max,withError=false)=>control.map((item,index)=>{const subsetLabel=item.name==="Monocytes & Macrophages"?"Monocytes &amp;<br>Macrophages":escapeHtml(item.name);return `<div class="metric-row" title="${escapeHtml(item.name)}"><span>${subsetLabel}</span><div class="metric-track">${renderEntry(item,key,max,"control",withError)}${renderEntry(aih[index],key,max,"aih",withError)}</div></div>`;}).join("");
+  const renderMetric=(key,max,withError=false)=>control.map((item,index)=>{const subsetLabel=item.name==="Monocytes & Macrophages"?"Monocytes &amp;<br>Macrophages":displayLabelHtml(item.rawName);return `<div class="metric-row" title="${escapeHtml(item.name)}"><span>${subsetLabel}</span><div class="metric-track">${renderEntry(item,key,max,"control",withError)}${renderEntry(aih[index],key,max,"aih",withError)}</div></div>`;}).join("");
   document.querySelector("#mean-expression-bars").innerHTML=renderMetric("mean",maxMean,true);
   document.querySelector("#percent-expression-bars").innerHTML=renderMetric("percent",100);
 }
@@ -400,12 +427,12 @@ function panelStats() {
 }
 function renderDotplot(content) {
   const stats=panelStats(), cols=currentData.annotations.length; const means=stats.flatMap(row=>row.stats.map(x=>x.mean)); const max=Math.max(.001,...means);
-  const headers=currentData.annotations.map(a=>`<div class="dot-col-label">${escapeHtml(displayLabel(a.name))}</div>`).join("");
+  const headers=currentData.annotations.map(a=>`<div class="dot-col-label">${displayLabelHtml(a.name)}</div>`).join("");
   const rows=stats.map(row=>`<div class="dot-row" style="--cols:${cols}"><div class="dot-label">${escapeHtml(row.gene)}</div>${row.stats.map(item=>`<div class="dot-cell" title="${escapeHtml(item.name)} · mean ${item.mean.toFixed(2)} · ${item.percent.toFixed(1)}%"><i class="dot" style="width:${Math.max(4,Math.sqrt(item.percent/100)*28)}px;height:${Math.max(4,Math.sqrt(item.percent/100)*28)}px;background:${gradientColor(item.mean,max)}"></i></div>`).join("")}</div>`).join("");
   content.innerHTML=`<div class="dotplot-wrap"><div class="dotplot"><div class="dot-row" style="--cols:${cols}"><div></div>${headers}</div>${rows}</div></div>`;
 }
 function renderHeatmap(content) {
-  const stats=panelStats(), cols=currentData.annotations.length; const headers=currentData.annotations.map(a=>`<div class="heatmap-cell">${escapeHtml(displayLabel(a.name))}</div>`).join("");
+  const stats=panelStats(), cols=currentData.annotations.length; const headers=currentData.annotations.map(a=>`<div class="heatmap-cell"><span>${displayLabelHtml(a.name)}</span></div>`).join("");
   const rows=stats.map(row=>{const max=Math.max(.001,...row.stats.map(x=>x.mean));return `<div class="heatmap-cell heatmap-label">${escapeHtml(row.gene)}</div>${row.stats.map(item=>`<div class="heatmap-cell" style="background:${gradientColor(item.mean,max)}" title="${escapeHtml(item.name)}: ${item.mean.toFixed(2)}">${item.mean.toFixed(2)}</div>`).join("")}`;}).join("");
   content.innerHTML=`<div class="heatmap-wrap"><div class="heatmap" style="--cols:${cols}"><div class="heatmap-cell heatmap-label">Gene</div>${headers}${rows}</div></div>`;
 }
