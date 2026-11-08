@@ -70,13 +70,23 @@ const DATASETS = {
     denominator: "Composition among recovered activated CD8 T cells",
     colors: ["#f0cd9b", "#71a672", "#b5af78", "#7ea4b8", "#d19243"],
     subsetOrder: ["Stem-like", "Intermediate", "Terminal", "Trm", "Teff"],
+    legend: [
+      ["Teff", "Short-lived effector cells"],
+      ["Stem-like", "Stem cell-like memory"],
+      ["Intermediate", "Intermediate"],
+      ["Terminal", "Terminal-differentiated"],
+      ["Trm", "Tissue-resident memory cells"]
+    ],
+    paddingFactor: .18,
     labelStyle: "external",
+    labelFontSize: 20,
+    labelOffsetReferenceWidth: 600,
     labelOffsets: {
-      "Trm": [68, 12],
-      "Intermediate": [70, -8],
-      "Terminal": [-26, -48],
-      "Teff": [42, 46],
-      "Stem-like": [-62, 8]
+      "Trm": [112, 12],
+      "Intermediate": [158, -38],
+      "Terminal": [-68, -78],
+      "Teff": [-92, 42],
+      "Stem-like": [-126, 8]
     },
     drilldown: {}, breadcrumb: ["T cells", "Activated CD8 T cells"]
   }
@@ -257,7 +267,8 @@ class UmapPlot {
       words.forEach(word => { const next=(line+" "+word).trim(); if(next.length>maxLabelLength && line){lines.push(line);line=word;}else line=next; }); if(line) lines.push(line);
       const baseX=tr.x(annotation.x), baseY=tr.y(annotation.y);
       const offset=config.labelOffsets?.[annotation.name] || [0,0];
-      let x=baseX+offset[0], y=baseY+offset[1]; const fontSize=config.labelFontSize ?? (config.labelStyle==="external"?(this.data.total_cells>20000?14:15):(this.data.total_cells>20000?10.5:11.5));
+      const offsetScale=config.labelOffsetReferenceWidth?this.canvas.clientWidth/config.labelOffsetReferenceWidth:1;
+      let x=baseX+offset[0]*offsetScale, y=baseY+offset[1]*offsetScale; const fontSize=config.labelFontSize ?? (config.labelStyle==="external"?(this.data.total_cells>20000?14:15):(this.data.total_cells>20000?10.5:11.5));
       const fontFamily=getComputedStyle(document.body).fontFamily;
       this.ctx.font=`700 ${fontSize}px ${fontFamily}`;
       this.ctx.textAlign="center"; this.ctx.textBaseline="middle";
@@ -346,6 +357,13 @@ function closeAdvancedViews() {
 
 function renderSingleGene() {
   if(!currentData) return; const meta=DATASETS[currentDatasetId];
+  const legend=document.querySelector("#annotation-legend");
+  legend.hidden=!meta.legend;
+  legend.closest(".paired-plots").classList.toggle("with-subset-legend",Boolean(meta.legend));
+  legend.innerHTML=(meta.legend||[]).map(([name,description])=>{
+    const index=currentData.annotations.findIndex(annotation=>annotation.name===name);
+    return `<li><i aria-hidden="true" style="background:${meta.colors[index]}"></i><span>${escapeHtml(description)} (${displayLabelHtml(name)})</span></li>`;
+  }).join("");
   annotationPlot.set(currentData,{mode:"annotation",condition:exploreCondition,onLabelClick:labelClick});
   featurePlot.set(currentData,{mode:"gene",gene:currentGene,condition:exploreCondition});
   const visible=currentData.cells.filter(row=>conditionMatches(row,exploreCondition)).length;
