@@ -34,8 +34,8 @@ const DATASETS = {
       "SLAMF9+ Macrophages": [0, -76],
       "Kupffer cells": [82, 52],
       "Trans.Monocytes": [-90, -22],
-      "Classical Monocytes": [-92, 58],
-      "Patrol.Monocytes": [-88, -54],
+      "Classical Monocytes": [-60, 38],
+      "Patrol.Monocytes": [-62, -38],
       "Trans.Macrophages": [104, 22]
     },
     drilldown: {}, breadcrumb: ["Monocytes & Macrophages"]
@@ -93,7 +93,7 @@ const DISPLAY_LABELS = {
   "RORg+ gd T cells": "RORγ⁺ γδ T cells",
   "Naive gd T cells": "Naive γδ T cells",
   "CD8aa IELs": "CD8αα IELs",
-  "SLAMF9+ Macrophages": "SLAMF9⁺ Macrophages"
+  "SLAMF9+ Macrophages": "MoMacs"
 };
 
 const CONDITION_LABELS = {all: "Combined", HET: "Control (Het)", DKO: "AIH model (DKO)"};
