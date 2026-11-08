@@ -82,11 +82,11 @@ const DATASETS = {
     labelFontSize: 20,
     labelOffsetReferenceWidth: 600,
     labelOffsets: {
-      "Trm": [112, 12],
-      "Intermediate": [158, -38],
-      "Terminal": [-68, -78],
-      "Teff": [-92, 42],
-      "Stem-like": [-126, 8]
+      "Trm": [78, 6],
+      "Intermediate": [116, -24],
+      "Terminal": [-42, -50],
+      "Teff": [-60, 24],
+      "Stem-like": [-88, 6]
     },
     drilldown: {}, breadcrumb: ["T cells", "Activated CD8 T cells"]
   }
