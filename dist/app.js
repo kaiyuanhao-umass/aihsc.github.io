@@ -27,14 +27,16 @@ const DATASETS = {
     description: "High-resolution monocyte and macrophage populations.",
     denominator: "Composition among recovered monocytes and macrophages",
     colors: ["#cf7a4e", "#6b9166", "#7296bd", "#ba6c7c", "#ab8958", "#8a74a8"],
+    paddingFactor: .17,
     labelStyle: "external",
+    labelFontSize: 12.5,
     labelOffsets: {
-      "SLAMF9+ Macrophages": [0, -48],
-      "Kupffer cells": [62, 34],
-      "Trans.Monocytes": [-62, -20],
-      "Classical Monocytes": [-66, 34],
-      "Patrol.Monocytes": [-62, -32],
-      "Trans.Macrophages": [40, -34]
+      "SLAMF9+ Macrophages": [0, -76],
+      "Kupffer cells": [82, 52],
+      "Trans.Monocytes": [-90, -22],
+      "Classical Monocytes": [-92, 58],
+      "Patrol.Monocytes": [-88, -54],
+      "Trans.Macrophages": [104, 22]
     },
     drilldown: {}, breadcrumb: ["Monocytes & Macrophages"]
   },
@@ -240,7 +242,7 @@ class UmapPlot {
       words.forEach(word => { const next=(line+" "+word).trim(); if(next.length>maxLabelLength && line){lines.push(line);line=word;}else line=next; }); if(line) lines.push(line);
       const baseX=tr.x(annotation.x), baseY=tr.y(annotation.y);
       const offset=config.labelOffsets?.[annotation.name] || [0,0];
-      let x=baseX+offset[0], y=baseY+offset[1]; const fontSize=config.labelStyle==="external"?(this.data.total_cells>20000?14:15):(this.data.total_cells>20000?10.5:11.5);
+      let x=baseX+offset[0], y=baseY+offset[1]; const fontSize=config.labelFontSize ?? (config.labelStyle==="external"?(this.data.total_cells>20000?14:15):(this.data.total_cells>20000?10.5:11.5));
       this.ctx.font=`700 ${fontSize}px ${getComputedStyle(document.body).fontFamily}`;
       this.ctx.textAlign="center"; this.ctx.textBaseline="middle";
       const width=Math.max(...lines.map(value=>this.ctx.measureText(value).width))+12; const height=lines.length*(fontSize+2)+8;
