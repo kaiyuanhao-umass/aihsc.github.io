@@ -6,7 +6,7 @@
     <meta name="description" content="Single-cell transcriptomic and TCR resource for a spontaneous mouse model of autoimmune hepatitis.">
     <title>Autoimmune Hepatitis Mouse Model Liver Immune Cell Atlas</title>
     <link rel="icon" href="data:,">
-    <link rel="stylesheet" href="styles.css?v=20261108-13">
+    <link rel="stylesheet" href="styles.css?v=20261108-14">
   </head>
   <body class="site-locked">
     <section class="access-gate" id="access-gate" aria-labelledby="access-title">
@@ -147,15 +147,31 @@
         </div>
 
         <div class="tcr-workspace" id="tcr-workspace" hidden>
-          <div class="tcr-toolbar">
-            <div><span class="control-label">TCR view</span><div class="condition-switch" id="tcr-mode"><button class="selected" type="button" data-tcr-mode="expansion">Clone size overview</button><button type="button" data-tcr-mode="clones">Top 10 expanded clones</button></div></div>
-            <div><span class="control-label">Cells displayed</span><div class="condition-switch" data-condition-group="tcr"><button class="selected" type="button" data-condition="all">Combined</button><button type="button" data-condition="HET">Control (Het)</button><button type="button" data-condition="DKO">AIH model (DKO)</button></div></div>
+          <div class="tcr-toolbar"><p id="tcr-cell-count">All activated CD8 T cells · Control + AIH pooled</p><span>Explore cell states → clone groups → expression</span></div>
+          <div class="tcr-plots">
+            <article class="plot-card">
+              <header><div><span>Cell-state reference</span><h2>Annotated UMAP</h2></div></header>
+              <div class="tcr-panel-controls"><p>Activated CD8 T-cell subsets<br><small>The same cells and coordinates appear in both UMAPs.</small></p></div>
+              <div class="plot-frame"><canvas id="tcr-reference-canvas" aria-label="Activated CD8 cell-state UMAP"></canvas><div class="plot-axis axis-x">UMAP 1</div><div class="plot-axis axis-y">UMAP 2</div></div>
+              <p class="plot-note">Manuscript subset annotations.</p>
+            </article>
+            <article class="plot-card">
+              <header><div><span>TCR groups</span><h2 id="tcr-plot-title">Clone size overview</h2></div></header>
+              <div class="tcr-panel-controls"><div class="condition-switch" id="tcr-mode" aria-label="TCR grouping"><button class="selected" aria-pressed="true" type="button" data-tcr-mode="expansion">Clone size</button><button aria-pressed="false" type="button" data-tcr-mode="clones">Top 15 clones</button></div></div>
+              <div class="plot-frame"><canvas id="tcr-canvas" aria-label="TCR clone grouping UMAP"></canvas><div class="plot-axis axis-x">UMAP 1</div><div class="plot-axis axis-y">UMAP 2</div><div class="canvas-tooltip" id="tcr-tooltip" hidden></div></div>
+              <div class="tcr-key" id="tcr-key" aria-label="TCR group colors"></div>
+            </article>
+            <article class="plot-card tcr-expression-card">
+              <header><div><span>Gene expression</span><h2 id="tcr-violin-title">Gzmk</h2></div><strong id="tcr-violin-grouping">By clone size</strong></header>
+              <form id="tcr-gene-form" class="tcr-panel-controls"><div class="search-control"><label for="tcr-gene">Gene of interest · 34 test genes</label><div><input id="tcr-gene" list="tcr-genes" value="Gzmk" autocomplete="off" required><button type="submit">Show</button></div><datalist id="tcr-genes"></datalist></div></form>
+              <div id="tcr-violin-chart" class="tcr-violin-scroll" role="region" aria-label="Gene expression violins" tabindex="0"></div>
+              <p class="tcr-scroll-hint" id="tcr-scroll-hint" hidden>Scroll horizontally to compare all clone groups →</p>
+              <p class="plot-note">Each dot is a cell; black bars show medians. Zeros are included. Control and AIH cells are pooled.</p>
+              <details class="tcr-expression-details"><summary>Expression summaries</summary><div class="table-scroll"><table><thead><tr><th>Group</th><th>Cells</th><th>Median</th><th>Mean</th><th>Expressing</th></tr></thead><tbody id="tcr-expression-summary"></tbody></table></div></details>
+            </article>
           </div>
-          <div class="paired-plots tcr-plots">
-            <article class="plot-card"><header><div><span>TCR analysis</span><h2 id="tcr-plot-title">Colored by expansion status</h2></div><strong id="tcr-cell-count">— cells</strong></header><div class="tcr-key" id="tcr-key"></div><div class="plot-frame"><canvas id="tcr-canvas" aria-label="TCR expansion UMAP"></canvas><div class="plot-axis axis-x">UMAP 1</div><div class="plot-axis axis-y">UMAP 2</div><div class="canvas-tooltip" id="tcr-tooltip" hidden></div></div></article>
-            <article class="plot-card"><header><div><span>Cell-state reference</span><h2>Activated CD8 T cells</h2></div><strong>Annotated UMAP</strong></header><div class="plot-frame"><canvas id="tcr-reference-canvas" aria-label="Activated CD8 cell-state UMAP"></canvas><div class="plot-axis axis-x">UMAP 1</div><div class="plot-axis axis-y">UMAP 2</div></div><p class="plot-note">The same coordinates are used in both panels.</p></article>
-          </div>
-          <article class="clone-table-card" id="clone-table-card" hidden><header><div><span>Sequence details</span><h2>Top 10 expanded clones</h2></div><small>Sample-aware paired CDR3 amino-acid identity</small></header><div class="table-scroll"><table><thead><tr><th>Rank</th><th>Clone</th><th>Cells</th><th>Sample</th><th>Condition</th><th>CDR3α</th><th>CDR3β</th></tr></thead><tbody id="clone-table-body"></tbody></table></div></article>
+          <p class="summary-note">Descriptive cell-level distributions. Cells from the same clone or sample are not independent biological replicates. “Unexpanded” retains the manuscript grouping, including missing clone-size assignments.</p>
+          <article class="clone-table-card" id="clone-table-card" hidden><header><div><span>Sequence details</span><h2>Top 15 expanded clones</h2></div><small>Ranked across pooled cells; sample-aware paired CDR3 amino-acid identity</small></header><div class="table-scroll"><table><thead><tr><th>Rank</th><th>Clone</th><th>Cells</th><th>Sample</th><th>Condition</th><th>CDR3α</th><th>CDR3β</th></tr></thead><tbody id="clone-table-body"></tbody></table></div></article>
         </div>
       </section>
 
@@ -173,6 +189,7 @@
     </main>
 
     <footer><div><strong>AIH Mouse Liver Immune Cell Atlas</strong><p>Private manuscript companion preview</p></div><div><span>Contact</span><a href="mailto:kaiyuan.hao@umassmed.edu">kaiyuan.hao@umassmed.edu</a></div><button type="button" data-view-link="overview">Back to overview ↑</button></footer>
-    <script src="app.js?v=20261108-13"></script>
+    <script src="tcr-expression.js?v=20261108-14"></script>
+    <script src="app.js?v=20261108-14"></script>
   </body>
 </html>

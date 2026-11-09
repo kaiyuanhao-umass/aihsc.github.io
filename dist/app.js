@@ -125,8 +125,8 @@ const CONDITION_INDEX = {HET: 0, DKO: 1};
 const CONDITION_COLORS = {HET: "#7599b5", DKO: "#b75b49"};
 const GENE_GRADIENT = ["#e5e5e5", "#b21111"];
 const FEATURE_ORDER_BY_EXPRESSION = false;
-const EXPANSION_COLORS = {"No TCR detected": "#d9ddd9", "Unexpanded": "#b9ca8f", "Medium": "#dfaa42", "Large": "#a44158"};
-const CLONE_COLORS = ["#246b8e", "#d05d49", "#769b43", "#8c5aa7", "#d4972d", "#2f8d7d", "#c76691", "#756239", "#4e73c2", "#a06f50"];
+const EXPANSION_COLORS = TcrExpression.SIZE_COLORS;
+const CLONE_COLORS = TcrExpression.CLONE_COLORS;
 const cache = new Map();
 const plots = [];
 
@@ -140,7 +140,7 @@ let overviewGene = "Ptprc";
 let panelGenes = [];
 let panelTab = "features";
 let overlayPrimary = null;
-let tcrCondition = "all";
+let tcrGene = "Gzmk";
 let tcrMode = "expansion";
 
 function displayLabel(value) { return DISPLAY_LABELS[value] || value; }
@@ -236,9 +236,9 @@ class UmapPlot {
       geneIndex = this.data.geneIndex[this.options.gene];
       geneMax = percentile(this.data.cells.map(row => row[geneIndex]));
     }
-    const radius = this.data.total_cells > 50000 ? 1.05 : this.data.total_cells > 18000 ? 1.25 : this.data.total_cells > 6000 ? 1.55 : 2.0;
+    const radius = (this.data.total_cells > 50000 ? 1.05 : this.data.total_cells > 18000 ? 1.25 : this.data.total_cells > 6000 ? 1.55 : 2.0) * (this.options.pointScale || 1);
     const cloneMap = this.options.cloneMap || new Map();
-    const drawRows = mode === "gene" && FEATURE_ORDER_BY_EXPRESSION ? [...visible].sort((a,b) => a[geneIndex] - b[geneIndex]) : visible;
+    const drawRows = mode === "clones" ? [...visible.filter(row=>!cloneMap.has(row[5])),...visible.filter(row=>cloneMap.has(row[5]))] : mode === "gene" && FEATURE_ORDER_BY_EXPRESSION ? [...visible].sort((a,b) => a[geneIndex] - b[geneIndex]) : visible;
     for (const row of drawRows) {
       let color = "#bfc6c0", alpha=.78;
       if (mode === "annotation") color = config.colors[row[2] % config.colors.length];
@@ -386,7 +386,6 @@ document.querySelectorAll("[data-condition-group]").forEach(group=>group.addEven
   const condition=button.dataset.condition;
   if(group.dataset.conditionGroup==="overview"){overviewCondition=condition;renderOverviewPlot();}
   if(group.dataset.conditionGroup==="explore"){exploreCondition=condition;if(!document.querySelector("#overlay-view").hidden)renderOverlay();else if(!document.querySelector("#gene-panel-view").hidden)renderGenePanel();else renderSingleGene();}
-  if(group.dataset.conditionGroup==="tcr"){tcrCondition=condition;renderTcr();}
 }));
 
 function expressionStats(gene, condition=null) {
@@ -467,26 +466,52 @@ function renderOverlay() {
 async function renderTcrExplorer() {
   currentData=await loadDataset("cd8_activated");
   document.querySelector("#expression-workspace").hidden=true;document.querySelector("#tcr-workspace").hidden=false;
-  document.querySelector("#explore-title").textContent="TCR repertoire";document.querySelector("#explore-description").textContent="Clone size, UMAP location, and paired CDR3 sequences in activated CD8 T cells.";document.querySelector("#breadcrumb-tail").textContent="› T cells › TCR repertoire";
+  document.querySelector("#explore-title").textContent="TCR repertoire";
+  document.querySelector("#explore-description").textContent="Connect activated CD8 cell states, clonal expansion, and gene expression across pooled Control and AIH cells.";
+  document.querySelector("#breadcrumb-tail").textContent="› T cells › TCR repertoire";
+  document.querySelector("#tcr-genes").innerHTML=currentData.genes.map(gene=>`<option value="${escapeHtml(gene)}"></option>`).join("");
+  document.querySelector("#tcr-gene").value=tcrGene;
   renderTcr();
 }
-document.querySelectorAll("[data-tcr-mode]").forEach(button=>button.addEventListener("click",()=>{tcrMode=button.dataset.tcrMode;document.querySelectorAll("[data-tcr-mode]").forEach(item=>item.classList.toggle("selected",item===button));renderTcr();}));
+document.querySelectorAll("[data-tcr-mode]").forEach(button=>button.addEventListener("click",()=>{
+  tcrMode=button.dataset.tcrMode;
+  document.querySelectorAll("[data-tcr-mode]").forEach(item=>{item.classList.toggle("selected",item===button);item.setAttribute("aria-pressed",String(item===button));});
+  renderTcr();
+}));
+document.querySelector("#tcr-gene-form").addEventListener("submit",event=>{
+  event.preventDefault();
+  const input=document.querySelector("#tcr-gene"),gene=validGene(currentData,input.value);
+  if(!gene){input.setCustomValidity("Choose one of the 34 genes available in this test preview.");input.reportValidity();return;}
+  input.setCustomValidity("");tcrGene=gene;input.value=gene;renderTcrExpression();
+});
+document.querySelector("#tcr-gene").addEventListener("input",event=>event.target.setCustomValidity(""));
 
-function topClones() {
-  const counts=new Map();currentData.cells.forEach(row=>{if(conditionMatches(row,tcrCondition)&&row[5]>=0)counts.set(row[5],(counts.get(row[5])||0)+1);});return [...counts.entries()].sort((a,b)=>b[1]-a[1]).slice(0,10);
-}
+function topClones() { return TcrExpression.topClones(currentData); }
 function renderTcr() {
-  const visible=currentData.cells.filter(row=>conditionMatches(row,tcrCondition)).length;document.querySelector("#tcr-cell-count").textContent=`${comma(visible)} cells`;
-  const top=topClones();const cloneMap=new Map(top.map(([index],rank)=>[index,CLONE_COLORS[rank]]));
-  tcrPlot.set(currentData,{mode:tcrMode==="expansion"?"expansion":"clones",condition:tcrCondition,cloneMap});
-  tcrReferencePlot.set(currentData,{mode:"annotation",condition:tcrCondition});
-  document.querySelector("#tcr-plot-title").textContent=tcrMode==="expansion"?"Colored by expansion status":"Top 10 expanded clones";
+  document.querySelector("#tcr-cell-count").textContent=`${comma(currentData.cells.length)} cells · Control + AIH pooled`;
+  const top=topClones(),cloneMap=new Map(top.map(([index],rank)=>[index,CLONE_COLORS[rank]]));
+  tcrReferencePlot.set(currentData,{mode:"annotation",condition:"all",pointScale:1.2});
+  tcrPlot.set(currentData,{mode:tcrMode==="expansion"?"expansion":"clones",condition:"all",cloneMap,pointScale:1.2});
+  document.querySelector("#tcr-plot-title").textContent=tcrMode==="expansion"?"Clone size overview":"Top 15 expanded clones";
   const key=document.querySelector("#tcr-key");
-  if(tcrMode==="expansion") key.innerHTML=currentData.expansion_levels.map(level=>`<span><i style="background:${EXPANSION_COLORS[level]||"#d9ddd9"}"></i>${escapeHtml(level)}</span>`).join("");
-  else key.innerHTML="<span>Top clones are color-matched to the sequence table below; all other cells are gray.</span>";
+  if(tcrMode==="expansion") key.innerHTML=TcrExpression.SIZE_ORDER.map(level=>`<span title="${level==="Unexpanded"?"Existing manuscript category; includes small, rare, and missing clone-size assignments.":"Stored manuscript clone-size category."}"><i style="background:${EXPANSION_COLORS[level]}"></i>${escapeHtml(level)}</span>`).join("");
+  else key.innerHTML=top.map(([index],rank)=>`<span title="${escapeHtml(currentData.clones[index].id)} · ${escapeHtml(currentData.clones[index].sample)}"><i style="background:${CLONE_COLORS[rank]}"></i>${escapeHtml(currentData.clones[index].id)}</span>`).join("")+"<span><i style='background:#d9ddd9'></i>Other / unassigned</span>";
   document.querySelector("#clone-table-card").hidden=tcrMode!=="clones";
   if(tcrMode==="clones") document.querySelector("#clone-table-body").innerHTML=top.map(([cloneIndex,count],rank)=>{const clone=currentData.clones[cloneIndex];return `<tr><td><i class="clone-swatch" style="background:${CLONE_COLORS[rank]}"></i> ${rank+1}</td><td>${escapeHtml(clone.id)}</td><td>${count}</td><td>${escapeHtml(clone.sample)}</td><td>${clone.genotype==="DKO"?"AIH model":"Control"}</td><td class="sequence">${escapeHtml(clone.cdr3_alpha||"—")}</td><td class="sequence">${escapeHtml(clone.cdr3_beta||"—")}</td></tr>`;}).join("");
+  renderTcrExpression();
 }
+function renderTcrExpression() {
+  if(currentDatasetId!=="tcr" || currentData?.id!=="cd8_activated")return;
+  const groups=TcrExpression.groups(currentData,tcrGene,tcrMode),chart=document.querySelector("#tcr-violin-chart");
+  document.querySelector("#tcr-violin-title").textContent=tcrGene;
+  document.querySelector("#tcr-violin-grouping").textContent=tcrMode==="expansion"?"By clone size":"By clone identity";
+  chart.innerHTML=TcrExpression.svg(groups,tcrGene,chart.clientWidth,chart.clientHeight||420);
+  chart.scrollLeft=0;
+  document.querySelector("#tcr-scroll-hint").hidden=tcrMode!=="clones";
+  document.querySelector("#tcr-expression-summary").innerHTML=groups.map(group=>{const stat=TcrExpression.summary(group.values);return `<tr><th scope="row">${escapeHtml(group.name)}</th><td>${stat.n}</td><td>${stat.median.toFixed(2)}</td><td>${stat.mean.toFixed(2)}</td><td>${stat.percent.toFixed(1)}%</td></tr>`;}).join("");
+}
+let tcrResizeFrame;
+new ResizeObserver(()=>{cancelAnimationFrame(tcrResizeFrame);tcrResizeFrame=requestAnimationFrame(renderTcrExpression);}).observe(document.querySelector("#tcr-violin-chart"));
 
 let atlasStarted=false;
 function startAtlas() {
