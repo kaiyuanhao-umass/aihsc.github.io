@@ -346,6 +346,7 @@ async function renderExpressionExplorer(id, resetGene=false) {
   currentData=await loadDataset(id); const meta=DATASETS[id];
   document.querySelector("#expression-workspace").hidden=false; document.querySelector("#tcr-workspace").hidden=true;
   document.querySelector("#explore-title").textContent=meta.title; document.querySelector("#explore-description").textContent=meta.description;
+  document.querySelector("#explore-tcr-button").hidden=!["t_cells","cd8_activated"].includes(id);
   document.querySelector("#breadcrumb-tail").textContent=meta.breadcrumb.length?`› ${meta.breadcrumb.join(" › ")}`:"";
   if(resetGene || !currentData.genes.includes(currentGene)) currentGene=currentData.default_gene;
   document.querySelector("#explore-gene").value=currentGene; fillGeneLists(currentData);
@@ -468,6 +469,7 @@ async function renderTcrExplorer() {
   currentData=await loadDataset("cd8_activated");
   document.querySelector("#expression-workspace").hidden=true;document.querySelector("#tcr-workspace").hidden=false;
   document.querySelector("#explore-title").textContent="TCR repertoire";
+  document.querySelector("#explore-tcr-button").hidden=true;
   document.querySelector("#explore-description").textContent="Connect activated CD8 cell states, clonal expansion, and gene expression across pooled Control and AIH cells.";
   document.querySelector("#breadcrumb-tail").textContent="› T cells › TCR repertoire";
   document.querySelector("#tcr-genes").innerHTML=currentData.genes.map(gene=>`<option value="${escapeHtml(gene)}"></option>`).join("");
