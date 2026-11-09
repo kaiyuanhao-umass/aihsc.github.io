@@ -41,7 +41,7 @@ const DATASETS = {
     drilldown: {}, breadcrumb: ["Monocytes & Macrophages"]
   },
   t_cells: {
-    path: "data/t_cells.json",
+    path: "data/t_cells.json?v=20261109-18",
     title: "T-cell expression atlas",
     description: "CD4, CD8, regulatory, proliferating, and γδ T-cell states.",
     denominator: "Composition among recovered T cells",
@@ -110,6 +110,11 @@ const DISPLAY_LABELS = {
   "Terminal": "TTER",
   "Trm": "TRM",
   "Teff": "TSLEC"
+};
+
+const TCR_EXPLORERS = {
+  tcr_total: {dataset: "t_cells", title: "Total T-cell TCR", label: "Total T-cell subsets", description: "Connect all liver T-cell states, clonal expansion, and gene expression across pooled Control and AIH cells."},
+  tcr: {dataset: "cd8_activated", title: "Activated CD8 T-cell TCR", label: "Activated CD8 T-cell subsets", description: "Connect activated CD8 cell states, clonal expansion, and gene expression across pooled Control and AIH cells."}
 };
 
 const DISPLAY_LABEL_PARTS = {
@@ -278,6 +283,18 @@ class UmapPlot {
       const width=(labelParts?richWidth:Math.max(...lines.map(value=>this.ctx.measureText(value).width)))+12; const height=(labelParts?fontSize+4:lines.length*(fontSize+2))+8;
       x=Math.max(width/2+5,Math.min(this.canvas.clientWidth-width/2-5,x));
       y=Math.max(height/2+5,Math.min(this.canvas.clientHeight-height/2-5,y));
+      if(this.options.avoidLabelOverlap) {
+        const clamp=(px,py)=>({x:Math.max(width/2+20,Math.min(this.canvas.clientWidth-width/2-8,px)),y:Math.max(height/2+8,Math.min(this.canvas.clientHeight-height/2-25,py))});
+        const fits=point=>this.labelBoxes.every(box=>point.x+width/2+4<=box.x || point.x-width/2-4>=box.x+box.width || point.y+height/2+4<=box.y || point.y-height/2-4>=box.y+box.height);
+        let position=clamp(x,y);
+        search: for(let distance=0;distance<=Math.max(this.canvas.clientWidth,this.canvas.clientHeight);distance+=6) {
+          for(const [dx,dy] of [[0,-1],[0,1],[-1,0],[1,0],[-.707,-.707],[.707,-.707],[-.707,.707],[.707,.707]]) {
+            const candidate=clamp(x+dx*distance,y+dy*distance);
+            if(fits(candidate)){position=candidate;break search;}
+          }
+        }
+        x=position.x;y=position.y;
+      }
       const labelColor=config.colors[index % config.colors.length];
       if(config.labelStyle==="external" && (offset[0] || offset[1])) {
         this.ctx.beginPath(); this.ctx.moveTo(baseX,baseY); this.ctx.lineTo(x,y); this.ctx.strokeStyle=labelColor; this.ctx.globalAlpha=.7; this.ctx.lineWidth=1.2; this.ctx.stroke(); this.ctx.globalAlpha=1;
@@ -288,7 +305,7 @@ class UmapPlot {
         this.ctx.textAlign="left";this.ctx.font=`700 ${fontSize}px ${fontFamily}`;this.ctx.strokeText(main,start,y);this.ctx.fillStyle=config.labelStyle==="external"?labelColor:"#183027";this.ctx.fillText(main,start,y);
         const mainWidth=this.ctx.measureText(main).width;this.ctx.font=`700 ${fontSize*.7}px ${fontFamily}`;this.ctx.strokeText(suffix,start+mainWidth,y+fontSize*.24);this.ctx.fillText(suffix,start+mainWidth,y+fontSize*.24);this.ctx.textAlign="center";this.ctx.font=`700 ${fontSize}px ${fontFamily}`;
       } else lines.forEach((value,lineIndex)=>{const ly=y+(lineIndex-(lines.length-1)/2)*(fontSize+2);this.ctx.strokeText(value,x,ly);this.ctx.fillStyle=config.labelStyle==="external"?labelColor:"#183027";this.ctx.fillText(value,x,ly);});
-      this.labelBoxes.push({x:x-width/2,y:y-height/2,width,height,index,name:annotation.name,clickable:Boolean(config.drilldown[annotation.name]),count:counts.get(index)});
+      this.labelBoxes.push({x:x-width/2,y:y-height/2,width,height,index,name:annotation.name,clickable:Boolean(config.drilldown[annotation.name] && this.options.onLabelClick),count:counts.get(index)});
     });
   }
 
@@ -326,7 +343,7 @@ async function goDataset(id) {
   showView("explore");
   currentDatasetId=id;
   document.querySelector("#dataset-select").value=id;
-  if(id==="tcr") await renderTcrExplorer(); else await renderExpressionExplorer(id,true);
+  if(TCR_EXPLORERS[id]) await renderTcrExplorer(id); else await renderExpressionExplorer(id,true);
 }
 
 document.querySelectorAll("[data-view-link]").forEach(button=>button.addEventListener("click",()=>showView(button.dataset.viewLink)));
@@ -343,10 +360,12 @@ function validGene(data,value) { return data.genes.find(gene=>gene.toLowerCase()
 function labelClick(name) { const target=DATASETS[currentDatasetId].drilldown[name]; if(target) goDataset(target); }
 
 async function renderExpressionExplorer(id, resetGene=false) {
-  currentData=await loadDataset(id); const meta=DATASETS[id];
+  const data=await loadDataset(id); if(currentDatasetId!==id)return;
+  currentData=data; const meta=DATASETS[id];
   document.querySelector("#expression-workspace").hidden=false; document.querySelector("#tcr-workspace").hidden=true;
   document.querySelector("#explore-title").textContent=meta.title; document.querySelector("#explore-description").textContent=meta.description;
   document.querySelector("#explore-tcr-button").hidden=!["t_cells","cd8_activated"].includes(id);
+  document.querySelector("#explore-tcr-button").dataset.datasetLink=id==="t_cells"?"tcr_total":"tcr";
   document.querySelector("#breadcrumb-tail").textContent=meta.breadcrumb.length?`› ${meta.breadcrumb.join(" › ")}`:"";
   if(resetGene || !currentData.genes.includes(currentGene)) currentGene=currentData.default_gene;
   document.querySelector("#explore-gene").value=currentGene; fillGeneLists(currentData);
@@ -465,15 +484,29 @@ function renderOverlay() {
   const canvases=grid.querySelectorAll("canvas");new UmapPlot(canvases[0]).set(currentData,{mode:"gene",gene:overlayPrimary,condition:exploreCondition});new UmapPlot(canvases[1]).set(currentData,{mode:"gene",gene:partner,condition:exploreCondition});new UmapPlot(canvases[2]).set(currentData,{mode:"overlay",genes:[overlayPrimary,partner],condition:exploreCondition});
 }
 
-async function renderTcrExplorer() {
-  currentData=await loadDataset("cd8_activated");
+async function renderTcrExplorer(id) {
+  const explorer=TCR_EXPLORERS[id],data=await loadDataset(explorer.dataset);
+  if(currentDatasetId!==id)return;
+  currentData=data;
   document.querySelector("#expression-workspace").hidden=true;document.querySelector("#tcr-workspace").hidden=false;
-  document.querySelector("#explore-title").textContent="TCR repertoire";
+  document.querySelector("#tcr-workspace").classList.toggle("total-tcr",id==="tcr_total");
+  document.querySelector("#explore-title").textContent=explorer.title;
   document.querySelector("#explore-tcr-button").hidden=true;
-  document.querySelector("#explore-description").textContent="Connect activated CD8 cell states, clonal expansion, and gene expression across pooled Control and AIH cells.";
-  document.querySelector("#breadcrumb-tail").textContent="› T cells › TCR repertoire";
+  document.querySelector("#explore-description").textContent=explorer.description;
+  document.querySelector("#breadcrumb-tail").textContent=`› T cells › ${explorer.title}`;
+  document.querySelector("#tcr-reference-label").textContent=explorer.label;
+  document.querySelector("#tcr-reference-canvas").setAttribute("aria-label",`${explorer.label} UMAP`);
+  document.querySelectorAll("#tcr-scope [data-dataset-link]").forEach(button=>{
+    const selected=button.dataset.datasetLink===id;
+    button.classList.toggle("selected",selected);button.setAttribute("aria-pressed",String(selected));
+  });
+  document.querySelector("#tcr-scope-note").textContent=id==="tcr_total"
+    ? "Descriptive cell-level distributions across two Control and two AIH liver samples. Cells from the same clone or sample are not independent biological replicates. Unexpanded combines Small, Rare, and no TCR detected; missing TCR does not establish biological non-expansion. Medium and Large retain the source cloneSize categories. Clone ranks and counts are calculated within this explorer."
+    : "Descriptive cell-level distributions. Cells from the same clone or sample are not independent biological replicates. Unexpanded retains the manuscript grouping, including missing clone-size assignments. Clone ranks and counts are calculated within this explorer.";
   document.querySelector("#tcr-genes").innerHTML=currentData.genes.map(gene=>`<option value="${escapeHtml(gene)}"></option>`).join("");
+  if(!currentData.genes.includes(tcrGene))tcrGene=currentData.default_gene;
   document.querySelector("#tcr-gene").value=tcrGene;
+  document.querySelector("#tcr-gene").setCustomValidity("");
   renderTcr();
 }
 document.querySelectorAll("[data-tcr-mode]").forEach(button=>button.addEventListener("click",()=>{
@@ -502,25 +535,27 @@ function updateTcrPointVisibility() {
 
 function topClones() { return TcrExpression.topClones(currentData); }
 function renderTcr() {
+  const meta=DATASETS[currentData.id];
   document.querySelector("#tcr-cell-count").textContent=`${comma(currentData.cells.length)} cells · Control + AIH pooled`;
   const top=topClones(),cloneMap=new Map(top.map(([index],rank)=>[index,CLONE_COLORS[rank]]));
-  const subsetColors=new Map(currentData.annotations.map((annotation,index)=>[annotation.name,DATASETS.cd8_activated.colors[index%DATASETS.cd8_activated.colors.length]]));
-  tcrReferencePlot.set(currentData,{mode:"annotation",condition:"all",pointScale:TcrExpression.POINT_SCALE});
+  const subsetColors=new Map(currentData.annotations.map((annotation,index)=>[annotation.name,meta.colors[index%meta.colors.length]]));
+  tcrReferencePlot.set(currentData,{mode:"annotation",condition:"all",pointScale:TcrExpression.POINT_SCALE,avoidLabelOverlap:currentData.id==="t_cells"});
   tcrPlot.set(currentData,{mode:tcrMode==="expansion"?"expansion":"clones",condition:"all",cloneMap,pointScale:TcrExpression.POINT_SCALE});
   document.querySelector("#tcr-plot-title").textContent=tcrMode==="expansion"?"Clone size overview":"Top 15 expanded clones";
   const key=document.querySelector("#tcr-key");
-  if(tcrMode==="expansion") key.innerHTML=TcrExpression.SIZE_ORDER.map(level=>`<span title="${level==="Unexpanded"?"Existing manuscript category; includes small, rare, and missing clone-size assignments.":"Stored manuscript clone-size category."}"><i style="background:${EXPANSION_COLORS[level]}"></i>${escapeHtml(level)}</span>`).join("");
+  const unexpandedNote=currentData.id==="t_cells"?"Small, Rare, and no TCR detected combined for display; missing TCR does not establish non-expansion.":"Existing manuscript category; includes small, rare, and missing clone-size assignments.";
+  if(tcrMode==="expansion") key.innerHTML=TcrExpression.SIZE_ORDER.map(level=>`<span title="${level==="Unexpanded"?unexpandedNote:"Stored manuscript clone-size category."}"><i style="background:${EXPANSION_COLORS[level]}"></i>${escapeHtml(level)}</span>`).join("");
   else key.innerHTML=top.map(([index],rank)=>`<span title="${escapeHtml(currentData.clones[index].id)} · ${escapeHtml(currentData.clones[index].sample)}"><i style="background:${CLONE_COLORS[rank]}"></i>${escapeHtml(currentData.clones[index].id)}</span>`).join("")+"<span><i style='background:#d9ddd9'></i>Other / unassigned</span>";
   document.querySelector("#clone-table-card").hidden=tcrMode!=="clones";
   if(tcrMode==="clones") document.querySelector("#clone-table-body").innerHTML=top.map(([cloneIndex,count],rank)=>{
     const clone=currentData.clones[cloneIndex];
-    const subsets=TcrExpression.cloneSubsets(currentData,cloneIndex,DATASETS.cd8_activated.subsetOrder).map(name=>`<span style="color:${subsetColors.get(name)}">${displayLabelHtml(name)}</span>`).join(", ");
+    const subsets=TcrExpression.cloneSubsets(currentData,cloneIndex,meta.subsetOrder||currentData.annotations.map(a=>a.name)).map(name=>`<span style="color:${subsetColors.get(name)}">${displayLabelHtml(name)}</span>`).join(", ");
     return `<tr><td><i class="clone-swatch" style="background:${CLONE_COLORS[rank]}"></i> ${rank+1}</td><td>${escapeHtml(clone.id)}</td><td>${count}</td><td class="clone-subsets">${subsets}</td><td class="sequence">${escapeHtml(clone.cdr3_alpha||"—")}</td><td class="sequence">${escapeHtml(clone.cdr3_beta||"—")}</td></tr>`;
   }).join("");
   renderTcrExpression();
 }
 function renderTcrExpression() {
-  if(currentDatasetId!=="tcr" || currentData?.id!=="cd8_activated")return;
+  if(!TCR_EXPLORERS[currentDatasetId] || currentData?.id!==TCR_EXPLORERS[currentDatasetId].dataset)return;
   const groups=TcrExpression.groups(currentData,tcrGene,tcrMode),chart=document.querySelector("#tcr-violin-chart");
   document.querySelector("#tcr-violin-title").textContent=tcrGene;
   document.querySelector("#tcr-violin-grouping").textContent=tcrMode==="expansion"?"By clone size":"By clone identity";

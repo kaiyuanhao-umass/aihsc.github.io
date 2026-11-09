@@ -57,17 +57,31 @@ split_cdr3 <- function(value, chain) {
   paste(sub(paste0("^", chain, ":"), "", hits), collapse = "; ")
 }
 
-make_tcr_payload <- function(cells) {
-  source_path <- "/Users/macbookair/Desktop/DKO scRNAseq/DKOvsHET_ActivatedCD8T_KEEP UMAP.rds"
-  object <- readRDS(source_path)
+make_tcr_payload <- function(cells, dataset_id) {
+  manifest <- read_json(file.path(release_root, dataset_id, "manifest.json"), simplifyVector = TRUE)
+  message("Loading TCR source for ", dataset_id, ": ", manifest$source$rds_path)
+  object <- readRDS(manifest$source$rds_path)
   metadata <- object@meta.data
+  stopifnot(all(c("group", "sample", "CTaa", "t_cdr3s_aa") %in% names(metadata)))
   keep <- as.character(metadata$group) %in% c("HET_Liver", "DKO_Liver")
   source_ids <- sort(rownames(metadata)[keep])
   metadata <- metadata[source_ids, , drop = FALSE]
   stopifnot(nrow(metadata) == nrow(cells))
+  # Validate row identity against the frozen release before attaching clonotypes.
+  umap <- object@reductions$umap@cell.embeddings[source_ids, 1:2, drop = FALSE]
+  stopifnot(
+    identical(as.character(cells$portal_cell_id), sprintf("%s_%06d", toupper(dataset_id), seq_along(source_ids))),
+    identical(as.character(metadata$group), as.character(cells$group)),
+    identical(as.character(metadata$sample), as.character(cells$sample_source)),
+    identical(as.character(metadata[[manifest$annotation$source_column]]), as.character(cells$annotation)),
+    max(abs(umap[, 1] - cells$umap_1)) < 1e-7,
+    max(abs(umap[, 2] - cells$umap_2)) < 1e-7
+  )
 
   sequence_key <- as.character(metadata$CTaa)
   sequence_key[is.na(sequence_key) | !nzchar(sequence_key)] <- NA_character_
+  detected <- !is.na(metadata$t_cdr3s_aa) & nzchar(as.character(metadata$t_cdr3s_aa))
+  stopifnot(identical(!is.na(sequence_key), detected), identical(detected, as.logical(cells$tcr_assigned)))
   sample_id <- as.character(metadata$sample)
   clone_key <- ifelse(is.na(sequence_key), NA_character_, paste(sample_id, sequence_key, sep = "::"))
   valid_keys <- clone_key[!is.na(clone_key)]
@@ -89,10 +103,26 @@ make_tcr_payload <- function(cells) {
       cdr3_beta = split_cdr3(raw_cdr3, "TRB")
     )
   })
-  list(clone_index = clone_index, clones = clones)
+  stopifnot(identical(ordered_keys[clone_index[clone_index >= 0L] + 1L], clone_key[clone_index >= 0L]))
+  expansion <- as.character(cells$expansion_class)
+  if (dataset_id == "t_cells") {
+    stopifnot("cloneSize" %in% names(metadata))
+    raw_size <- as.character(metadata$cloneSize)
+    category <- sub("[[:space:]]*\\(.*$", "", raw_size)
+    unexpected <- setdiff(unique(category[!is.na(category) & nzchar(category)]), c("Small", "Rare", "None", "Medium", "Large"))
+    if (length(unexpected)) stop("Unreviewed cloneSize category: ", paste(unexpected, collapse = ", "))
+    expansion <- ifelse(is.na(category) | !nzchar(category) | category %in% c("Small", "Rare", "None") | !detected, "Unexpanded", category)
+    stopifnot(all(expansion %in% c("Unexpanded", "Medium", "Large")))
+    message("Total T-cell cloneSize display groups: ", paste(names(table(expansion)), table(expansion), collapse = "; "))
+  }
+  message("Validated ", nrow(cells), " aligned cells; ", sum(detected), " TCR assigned; ", length(clones), " sample-specific clones")
+  list(clone_index = clone_index, clones = clones, expansion = expansion)
 }
 
-for (dataset_id in names(dataset_info)) {
+requested_datasets <- commandArgs(trailingOnly = TRUE)
+if (!length(requested_datasets)) requested_datasets <- names(dataset_info)
+stopifnot(all(requested_datasets %in% names(dataset_info)))
+for (dataset_id in requested_datasets) {
   dataset_dir <- file.path(release_root, dataset_id)
   cells <- fread(file.path(dataset_dir, "cells.csv.gz"))
   expression <- read_sparse_columns(file.path(dataset_dir, "expression-csc.h5"), genes_requested)
@@ -101,17 +131,16 @@ for (dataset_id in names(dataset_info)) {
   annotations <- unique(as.character(cells$annotation))
   annotation_index <- match(cells$annotation, annotations) - 1L
   genotype_index <- ifelse(cells$genotype == "DKO", 1L, 0L)
-  expansion_values <- as.character(cells$expansion_class)
-  expansion_values[is.na(expansion_values) | !nzchar(expansion_values)] <- "No TCR detected"
-  expansion_levels <- unique(expansion_values)
-  expansion_index <- match(expansion_values, expansion_levels) - 1L
-
   tcr <- NULL
   clone_index <- rep(-1L, nrow(cells))
-  if (dataset_id == "cd8_activated") {
-    tcr <- make_tcr_payload(cells)
+  if (dataset_id %in% c("cd8_activated", "t_cells")) {
+    tcr <- make_tcr_payload(cells, dataset_id)
     clone_index <- tcr$clone_index
   }
+  expansion_values <- if (is.null(tcr)) as.character(cells$expansion_class) else tcr$expansion
+  expansion_values[is.na(expansion_values) | !nzchar(expansion_values)] <- "No TCR detected"
+  expansion_levels <- if (dataset_id == "t_cells") c("Unexpanded", "Medium", "Large") else unique(expansion_values)
+  expansion_index <- match(expansion_values, expansion_levels) - 1L
 
   annotation_records <- lapply(seq_along(annotations), function(index) {
     mask <- cells$annotation == annotations[[index]]

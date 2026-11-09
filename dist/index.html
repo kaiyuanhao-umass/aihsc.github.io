@@ -6,7 +6,7 @@
     <meta name="description" content="Single-cell transcriptomic and TCR resource for a spontaneous mouse model of autoimmune hepatitis.">
     <title>Autoimmune Hepatitis Mouse Model Liver Immune Cell Atlas</title>
     <link rel="icon" href="data:,">
-    <link rel="stylesheet" href="styles.css?v=20261109-17">
+    <link rel="stylesheet" href="styles.css?v=20261109-18">
   </head>
   <body class="site-locked">
     <section class="access-gate" id="access-gate" aria-labelledby="access-title">
@@ -39,7 +39,8 @@
             <div class="menu-group"><span>T cells</span></div>
             <button type="button" data-dataset-link="t_cells"><strong>T-cell expression atlas</strong><small>CD4, CD8 and γδ states</small></button>
             <button type="button" data-dataset-link="cd8_activated"><strong>Activated CD8 T cells</strong><small>High-resolution activated states</small></button>
-            <button type="button" data-dataset-link="tcr"><strong>TCR repertoire</strong><small>Expansion and top clonotypes</small></button>
+            <button type="button" data-dataset-link="tcr_total"><strong>Total T-cell TCR</strong><small>Expansion across all T-cell states</small></button>
+            <button type="button" data-dataset-link="tcr"><strong>Activated CD8 T-cell TCR</strong><small>Expansion in activated CD8 states</small></button>
           </div>
         </details>
         <button class="nav-link" type="button" data-view-link="study">Study design</button>
@@ -114,7 +115,7 @@
             <p id="explore-description">A broad view of the liver immune landscape.</p>
             <button class="explore-tcr-button" id="explore-tcr-button" type="button" data-dataset-link="tcr" hidden>Explore TCR repertoire <span aria-hidden="true">→</span></button>
           </div>
-          <div class="dataset-select-wrap"><label for="dataset-select">Explorer</label><select id="dataset-select"><option value="liver_broad">All liver immune cells</option><option value="monomac">Monocytes &amp; Macrophages</option><option value="t_cells">T-cell expression atlas</option><option value="cd8_activated">Activated CD8 T cells</option><option value="tcr">TCR repertoire</option></select></div>
+          <div class="dataset-select-wrap"><label for="dataset-select">Explorer</label><select id="dataset-select"><option value="liver_broad">All liver immune cells</option><option value="monomac">Monocytes &amp; Macrophages</option><option value="t_cells">T-cell expression atlas</option><option value="cd8_activated">Activated CD8 T cells</option><option value="tcr_total">Total T-cell TCR</option><option value="tcr">Activated CD8 T-cell TCR</option></select></div>
         </div>
 
         <div class="expression-workspace" id="expression-workspace">
@@ -148,11 +149,11 @@
         </div>
 
         <div class="tcr-workspace" id="tcr-workspace" hidden>
-          <div class="tcr-toolbar"><p id="tcr-cell-count">All activated CD8 T cells · Control + AIH pooled</p><span>Explore cell states → clone groups → expression</span></div>
+          <div class="tcr-toolbar"><p id="tcr-cell-count">Control + AIH pooled</p><div class="condition-switch tcr-scope" id="tcr-scope" role="group" aria-label="TCR cell population"><button type="button" data-dataset-link="tcr_total" aria-pressed="false">Total T cells</button><button type="button" data-dataset-link="tcr" aria-pressed="false">Activated CD8 T cells</button></div></div>
           <div class="tcr-plots">
             <article class="plot-card">
               <header><div><span>Cell-state reference</span><h2>Annotated UMAP</h2></div></header>
-              <div class="tcr-panel-controls"><p>Activated CD8 T-cell subsets<br><small>The same cells and coordinates appear in both UMAPs.</small></p></div>
+              <div class="tcr-panel-controls"><p><span id="tcr-reference-label">Activated CD8 T-cell subsets</span><br><small>The same cells and coordinates appear in both UMAPs.</small></p></div>
               <div class="plot-frame"><canvas id="tcr-reference-canvas" aria-label="Activated CD8 cell-state UMAP"></canvas><div class="plot-axis axis-x">UMAP 1</div><div class="plot-axis axis-y">UMAP 2</div></div>
               <p class="plot-note">Manuscript subset annotations.</p>
             </article>
@@ -171,26 +172,26 @@
               <details class="tcr-expression-details"><summary>Expression summaries</summary><div class="table-scroll"><table><thead><tr><th>Group</th><th>Cells</th><th>Median</th><th>Mean</th><th>Expressing</th></tr></thead><tbody id="tcr-expression-summary"></tbody></table></div></details>
             </article>
           </div>
-          <p class="summary-note">Descriptive cell-level distributions. Cells from the same clone or sample are not independent biological replicates. “Unexpanded” retains the manuscript grouping, including missing clone-size assignments.</p>
-          <article class="clone-table-card" id="clone-table-card" hidden><header><div><span>Sequence details</span><h2>Top 15 expanded clones</h2></div><small>Ranked across pooled cells; sample-aware paired CDR3 amino-acid identity</small></header><div class="table-scroll"><table><thead><tr><th>Rank</th><th>Clone</th><th>Cells</th><th>Cell subsets</th><th>CDR3α</th><th>CDR3β</th></tr></thead><tbody id="clone-table-body"></tbody></table></div></article>
+          <p class="summary-note" id="tcr-scope-note">Descriptive cell-level distributions. Cells from the same clone or sample are not independent biological replicates. “Unexpanded” retains the manuscript grouping, including missing clone-size assignments.</p>
+          <article class="clone-table-card" id="clone-table-card" hidden><header><div><span>Sequence details</span><h2>Top 15 expanded clones</h2></div><small>Ranked within this population; sample-specific CDR3 amino-acid identity</small></header><div class="table-scroll"><table><thead><tr><th>Rank</th><th>Clone</th><th>Cells</th><th>Cell subsets</th><th>CDR3α</th><th>CDR3β</th></tr></thead><tbody id="clone-table-body"></tbody></table></div></article>
         </div>
       </section>
 
       <section class="page-view study-view" data-view="study" aria-labelledby="study-title">
         <div class="narrow-header"><p class="eyebrow">Study design</p><h1 id="study-title">From spontaneous liver inflammation to a navigable immune-cell atlas</h1><p class="lead">The atlas accompanies a study of a spontaneous autoimmune-hepatitis-like mouse model and connects broad immune remodeling with focused myeloid, T-cell, and TCR analyses.</p></div>
-        <div class="study-flow" aria-label="Study workflow"><article><span>01</span><h2>Mouse model</h2><p>AIH model (DKO) and Control (Het) mice provide the biological comparison.</p></article><i aria-hidden="true">→</i><article><span>02</span><h2>Liver immune profiling</h2><p>Single-cell RNA sequencing maps immune populations and transcriptional states.</p></article><i aria-hidden="true">→</i><article><span>03</span><h2>Focused resolution</h2><p>Monocyte/macrophage and T-cell subsets are reanalyzed at higher resolution.</p></article><i aria-hidden="true">→</i><article><span>04</span><h2>TCR context</h2><p>Activated CD8 states are linked to clonal expansion and paired CDR3 sequences.</p></article></div>
-        <div class="study-context"><div><p class="kicker">Biological question</p><h2>How does chronic innate immune activation reshape the liver immune compartment and sustain pathogenic T-cell responses?</h2></div><div><p>The atlas is designed as an extension of the manuscript: readers can move beyond the figures, search their own genes of interest, compare conditions, and locate expanded T-cell clonotypes within the activated-CD8 landscape.</p><a href="https://www.biorxiv.org/content/10.64898/2026.09.25.754422v1" target="_blank" rel="noreferrer">Open the preprint ↗</a></div></div>
+        <div class="study-flow" aria-label="Study workflow"><article><span>01</span><h2>Mouse model</h2><p>AIH model (DKO) and Control (Het) mice provide the biological comparison.</p></article><i aria-hidden="true">→</i><article><span>02</span><h2>Liver immune profiling</h2><p>Single-cell RNA sequencing maps immune populations and transcriptional states.</p></article><i aria-hidden="true">→</i><article><span>03</span><h2>Focused resolution</h2><p>Monocyte/macrophage and T-cell subsets are reanalyzed at higher resolution.</p></article><i aria-hidden="true">→</i><article><span>04</span><h2>TCR context</h2><p>Total T-cell and activated CD8 states are linked to clonal expansion and CDR3 sequences.</p></article></div>
+        <div class="study-context"><div><p class="kicker">Biological question</p><h2>How does chronic innate immune activation reshape the liver immune compartment and sustain pathogenic T-cell responses?</h2></div><div><p>The atlas is designed as an extension of the manuscript: readers can move beyond the figures, search their own genes of interest, compare conditions, and locate expanded T-cell clonotypes within the total T-cell and activated-CD8 landscapes.</p><a href="https://www.biorxiv.org/content/10.64898/2026.09.25.754422v1" target="_blank" rel="noreferrer">Open the preprint ↗</a></div></div>
       </section>
 
       <section class="page-view methods-view" data-view="methods" aria-labelledby="methods-title">
         <div class="narrow-header"><p class="eyebrow">Methods &amp; data</p><h1 id="methods-title">Transparent data scope and interpretation</h1><p class="lead">Version 1 is liver-only and preserves the analyzed UMAP coordinates and reviewed working annotations from each source object.</p></div>
-        <div class="methods-grid"><article><span>Data scope</span><h2>Liver immune cells only</h2><p>Spleen cells present in some source objects are excluded from every atlas level shown here.</p></article><article><span>Expression</span><h2>Normalized RNA data</h2><p>FeaturePlots and summaries use the Seurat RNA assay data layer. They are descriptive visualizations, not significance tests.</p></article><article><span>Embeddings</span><h2>Preserved source UMAPs</h2><p>Each level is a separately analyzed dataset with its own frozen UMAP. Moving deeper changes resolution rather than filtering the parent embedding.</p></article><article><span>Gene summaries</span><h2>Condition-aware expression</h2><p>Mean normalized expression and the percentage of expressing cells are shown separately for Het and DKO. Cell-level error bars are descriptive and do not represent variation between animals.</p></article><article><span>TCR</span><h2>Sample-aware clones</h2><p>The private preview defines displayed clones by biological sample and paired amino-acid CDR3 identity.</p></article><article><span>Release status</span><h2>Private review build</h2><p>Annotations, public sample labels, downloadable matrices, and the final clonotype release remain subject to manuscript sign-off.</p></article></div>
+        <div class="methods-grid"><article><span>Data scope</span><h2>Liver immune cells only</h2><p>Spleen cells present in some source objects are excluded from every atlas level shown here.</p></article><article><span>Expression</span><h2>Normalized RNA data</h2><p>FeaturePlots and summaries use the Seurat RNA assay data layer. They are descriptive visualizations, not significance tests.</p></article><article><span>Embeddings</span><h2>Preserved source UMAPs</h2><p>Each level is a separately analyzed dataset with its own frozen UMAP. Moving deeper changes resolution rather than filtering the parent embedding.</p></article><article><span>Gene summaries</span><h2>Condition-aware expression</h2><p>Mean normalized expression and the percentage of expressing cells are shown separately for Het and DKO. Cell-level error bars are descriptive and do not represent variation between animals.</p></article><article><span>TCR</span><h2>Sample-aware clones</h2><p>The preview defines displayed clones by biological sample and the source CTaa amino-acid CDR3 identity, retaining available chains. Total T-cell and activated CD8 clone ranks are calculated separately. In the total T-cell explorer, Small, Rare, and no TCR detected form the Unexpanded display group; Medium and Large preserve the source cloneSize categories.</p></article><article><span>Release status</span><h2>Private review build</h2><p>Annotations, public sample labels, downloadable matrices, and the final clonotype release remain subject to manuscript sign-off.</p></article></div>
         <div class="data-table"><div><strong>Atlas level</strong><strong>Cells</strong><strong>Purpose</strong></div><div><span>All liver immune cells</span><span>63,936</span><span>Broad immune landscape</span></div><div><span>Monocytes &amp; Macrophages</span><span>5,648</span><span>High-resolution myeloid states</span></div><div><span>T-cell expression atlas</span><span>25,952</span><span>CD4, CD8 and γδ states</span></div><div><span>Activated CD8 T cells</span><span>3,683</span><span>Activated states and TCR mapping</span></div></div>
       </section>
     </main>
 
     <footer><div><strong>AIH Mouse Liver Immune Cell Atlas</strong><p>Private manuscript companion preview</p></div><div><span>Contact</span><a href="mailto:kaiyuan.hao@umassmed.edu">kaiyuan.hao@umassmed.edu</a></div><button type="button" data-view-link="overview">Back to overview ↑</button></footer>
-    <script src="tcr-expression.js?v=20261109-17"></script>
-    <script src="app.js?v=20261109-17"></script>
+    <script src="tcr-expression.js?v=20261109-18"></script>
+    <script src="app.js?v=20261109-18"></script>
   </body>
 </html>

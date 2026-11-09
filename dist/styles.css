@@ -114,6 +114,7 @@ footer { display: grid; grid-template-columns: 1fr auto 1fr; gap: 2rem; align-it
 .tcr-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 1rem; padding: 1rem; border-bottom: 1px solid var(--line); }
 .tcr-toolbar p { margin: 0; font-size: .78rem; font-weight: 600; }
 .tcr-toolbar > span { color: var(--muted); font-size: .68rem; }
+.tcr-scope button { min-height: 42px; padding: .65rem .9rem; font-size: .76rem; }
 .tcr-plots { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); }
 .tcr-plots > .plot-card { min-width: 0; }
 .tcr-plots > .plot-card + .plot-card { border-left: 1px solid var(--line); border-top: 0; }
@@ -165,3 +166,5 @@ footer { display: grid; grid-template-columns: 1fr auto 1fr; gap: 2rem; align-it
 #clone-table-card .clone-subsets { min-width: 180px; max-width: 260px; white-space: normal; line-height: 1.6; }
 .clone-subsets > span { white-space: nowrap; font-weight: 600; }
 .clone-subsets sub { font-size: .7em; line-height: 0; vertical-align: -.28em; }
+.total-tcr #clone-table-card .clone-subsets { min-width: 240px; max-width: 340px; }
+.total-tcr .clone-subsets > span { white-space: normal; }
