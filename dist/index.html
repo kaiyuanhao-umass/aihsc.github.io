@@ -6,7 +6,7 @@
     <meta name="description" content="Single-cell transcriptomic and TCR resource for a spontaneous mouse model of autoimmune hepatitis.">
     <title>Autoimmune Hepatitis Mouse Model Liver Immune Cell Atlas</title>
     <link rel="icon" href="data:,">
-    <link rel="stylesheet" href="styles.css?v=20261108-14">
+    <link rel="stylesheet" href="styles.css?v=20261108-15">
   </head>
   <body class="site-locked">
     <section class="access-gate" id="access-gate" aria-labelledby="access-title">
@@ -163,15 +163,15 @@
             </article>
             <article class="plot-card tcr-expression-card">
               <header><div><span>Gene expression</span><h2 id="tcr-violin-title">Gzmk</h2></div><strong id="tcr-violin-grouping">By clone size</strong></header>
-              <form id="tcr-gene-form" class="tcr-panel-controls"><div class="search-control"><label for="tcr-gene">Gene of interest · 34 test genes</label><div><input id="tcr-gene" list="tcr-genes" value="Gzmk" autocomplete="off" required><button type="submit">Show</button></div><datalist id="tcr-genes"></datalist></div></form>
+              <form id="tcr-gene-form" class="tcr-panel-controls tcr-gene-controls"><div class="search-control"><label for="tcr-gene">Gene of interest · 34 test genes</label><div><input id="tcr-gene" list="tcr-genes" value="Gzmk" autocomplete="off" required><button type="submit">Show</button></div><datalist id="tcr-genes"></datalist></div><label class="tcr-point-toggle" for="tcr-show-points"><input id="tcr-show-points" type="checkbox" checked>Show individual cells</label></form>
               <div id="tcr-violin-chart" class="tcr-violin-scroll" role="region" aria-label="Gene expression violins" tabindex="0"></div>
               <p class="tcr-scroll-hint" id="tcr-scroll-hint" hidden>Scroll horizontally to compare all clone groups →</p>
-              <p class="plot-note">Each dot is a cell; black bars show medians. Zeros are included. Control and AIH cells are pooled.</p>
+              <p class="plot-note">Black bars show medians. All cells, including zeros, contribute whether points are shown or hidden. Control and AIH cells are pooled.</p>
               <details class="tcr-expression-details"><summary>Expression summaries</summary><div class="table-scroll"><table><thead><tr><th>Group</th><th>Cells</th><th>Median</th><th>Mean</th><th>Expressing</th></tr></thead><tbody id="tcr-expression-summary"></tbody></table></div></details>
             </article>
           </div>
           <p class="summary-note">Descriptive cell-level distributions. Cells from the same clone or sample are not independent biological replicates. “Unexpanded” retains the manuscript grouping, including missing clone-size assignments.</p>
-          <article class="clone-table-card" id="clone-table-card" hidden><header><div><span>Sequence details</span><h2>Top 15 expanded clones</h2></div><small>Ranked across pooled cells; sample-aware paired CDR3 amino-acid identity</small></header><div class="table-scroll"><table><thead><tr><th>Rank</th><th>Clone</th><th>Cells</th><th>Sample</th><th>Condition</th><th>CDR3α</th><th>CDR3β</th></tr></thead><tbody id="clone-table-body"></tbody></table></div></article>
+          <article class="clone-table-card" id="clone-table-card" hidden><header><div><span>Sequence details</span><h2>Top 15 expanded clones</h2></div><small>Ranked across pooled cells; sample-aware paired CDR3 amino-acid identity</small></header><div class="table-scroll"><table><thead><tr><th>Rank</th><th>Clone</th><th>Cells</th><th>Cell subsets</th><th>CDR3α</th><th>CDR3β</th></tr></thead><tbody id="clone-table-body"></tbody></table></div></article>
         </div>
       </section>
 
@@ -189,7 +189,7 @@
     </main>
 
     <footer><div><strong>AIH Mouse Liver Immune Cell Atlas</strong><p>Private manuscript companion preview</p></div><div><span>Contact</span><a href="mailto:kaiyuan.hao@umassmed.edu">kaiyuan.hao@umassmed.edu</a></div><button type="button" data-view-link="overview">Back to overview ↑</button></footer>
-    <script src="tcr-expression.js?v=20261108-14"></script>
-    <script src="app.js?v=20261108-14"></script>
+    <script src="tcr-expression.js?v=20261108-15"></script>
+    <script src="app.js?v=20261108-15"></script>
   </body>
 </html>

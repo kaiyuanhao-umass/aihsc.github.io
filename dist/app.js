@@ -142,6 +142,7 @@ let panelTab = "features";
 let overlayPrimary = null;
 let tcrGene = "Gzmk";
 let tcrMode = "expansion";
+let tcrShowPoints = true;
 
 function displayLabel(value) { return DISPLAY_LABELS[value] || value; }
 function escapeHtml(value) { return String(value ?? "").replace(/[&<>'"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[c])); }
@@ -485,19 +486,34 @@ document.querySelector("#tcr-gene-form").addEventListener("submit",event=>{
   input.setCustomValidity("");tcrGene=gene;input.value=gene;renderTcrExpression();
 });
 document.querySelector("#tcr-gene").addEventListener("input",event=>event.target.setCustomValidity(""));
+document.querySelector("#tcr-show-points").addEventListener("change",event=>{
+  tcrShowPoints=event.target.checked;
+  updateTcrPointVisibility();
+});
+
+function updateTcrPointVisibility() {
+  const chart=document.querySelector("#tcr-violin-chart");
+  chart.classList.toggle("hide-individual-points",!tcrShowPoints);
+  const description=chart.querySelector("svg desc");
+  if(description) description.textContent=`${tcrShowPoints?"Each dot is a cell.":"Individual cell points are hidden."} Black horizontal marks show medians. All cells, including zeros, are included; violin widths are normalized separately.`;
+}
 
 function topClones() { return TcrExpression.topClones(currentData); }
 function renderTcr() {
   document.querySelector("#tcr-cell-count").textContent=`${comma(currentData.cells.length)} cells · Control + AIH pooled`;
   const top=topClones(),cloneMap=new Map(top.map(([index],rank)=>[index,CLONE_COLORS[rank]]));
-  tcrReferencePlot.set(currentData,{mode:"annotation",condition:"all",pointScale:1.2});
-  tcrPlot.set(currentData,{mode:tcrMode==="expansion"?"expansion":"clones",condition:"all",cloneMap,pointScale:1.2});
+  tcrReferencePlot.set(currentData,{mode:"annotation",condition:"all",pointScale:TcrExpression.POINT_SCALE});
+  tcrPlot.set(currentData,{mode:tcrMode==="expansion"?"expansion":"clones",condition:"all",cloneMap,pointScale:TcrExpression.POINT_SCALE});
   document.querySelector("#tcr-plot-title").textContent=tcrMode==="expansion"?"Clone size overview":"Top 15 expanded clones";
   const key=document.querySelector("#tcr-key");
   if(tcrMode==="expansion") key.innerHTML=TcrExpression.SIZE_ORDER.map(level=>`<span title="${level==="Unexpanded"?"Existing manuscript category; includes small, rare, and missing clone-size assignments.":"Stored manuscript clone-size category."}"><i style="background:${EXPANSION_COLORS[level]}"></i>${escapeHtml(level)}</span>`).join("");
   else key.innerHTML=top.map(([index],rank)=>`<span title="${escapeHtml(currentData.clones[index].id)} · ${escapeHtml(currentData.clones[index].sample)}"><i style="background:${CLONE_COLORS[rank]}"></i>${escapeHtml(currentData.clones[index].id)}</span>`).join("")+"<span><i style='background:#d9ddd9'></i>Other / unassigned</span>";
   document.querySelector("#clone-table-card").hidden=tcrMode!=="clones";
-  if(tcrMode==="clones") document.querySelector("#clone-table-body").innerHTML=top.map(([cloneIndex,count],rank)=>{const clone=currentData.clones[cloneIndex];return `<tr><td><i class="clone-swatch" style="background:${CLONE_COLORS[rank]}"></i> ${rank+1}</td><td>${escapeHtml(clone.id)}</td><td>${count}</td><td>${escapeHtml(clone.sample)}</td><td>${clone.genotype==="DKO"?"AIH model":"Control"}</td><td class="sequence">${escapeHtml(clone.cdr3_alpha||"—")}</td><td class="sequence">${escapeHtml(clone.cdr3_beta||"—")}</td></tr>`;}).join("");
+  if(tcrMode==="clones") document.querySelector("#clone-table-body").innerHTML=top.map(([cloneIndex,count],rank)=>{
+    const clone=currentData.clones[cloneIndex];
+    const subsets=TcrExpression.cloneSubsets(currentData,cloneIndex,DATASETS.cd8_activated.subsetOrder).map(name=>`<span>${displayLabelHtml(name)}</span>`).join(", ");
+    return `<tr><td><i class="clone-swatch" style="background:${CLONE_COLORS[rank]}"></i> ${rank+1}</td><td>${escapeHtml(clone.id)}</td><td>${count}</td><td class="clone-subsets">${subsets}</td><td class="sequence">${escapeHtml(clone.cdr3_alpha||"—")}</td><td class="sequence">${escapeHtml(clone.cdr3_beta||"—")}</td></tr>`;
+  }).join("");
   renderTcrExpression();
 }
 function renderTcrExpression() {
@@ -506,6 +522,7 @@ function renderTcrExpression() {
   document.querySelector("#tcr-violin-title").textContent=tcrGene;
   document.querySelector("#tcr-violin-grouping").textContent=tcrMode==="expansion"?"By clone size":"By clone identity";
   chart.innerHTML=TcrExpression.svg(groups,tcrGene,chart.clientWidth,chart.clientHeight||420);
+  updateTcrPointVisibility();
   chart.scrollLeft=0;
   document.querySelector("#tcr-scroll-hint").hidden=tcrMode!=="clones";
   document.querySelector("#tcr-expression-summary").innerHTML=groups.map(group=>{const stat=TcrExpression.summary(group.values);return `<tr><th scope="row">${escapeHtml(group.name)}</th><td>${stat.n}</td><td>${stat.median.toFixed(2)}</td><td>${stat.mean.toFixed(2)}</td><td>${stat.percent.toFixed(1)}%</td></tr>`;}).join("");

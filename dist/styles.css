@@ -120,7 +120,7 @@ footer { display: grid; grid-template-columns: 1fr auto 1fr; gap: 2rem; align-it
 .tcr-plots .plot-card > header { min-height: 76px; align-items: center; }
 .tcr-plots .plot-card > header h2 { font-size: 1.13rem; }
 #tcr-violin-title { font-style: italic; }
-.tcr-panel-controls { display: flex; align-items: center; height: 96px; padding: .85rem 1rem; border-bottom: 1px solid var(--line); }
+.tcr-panel-controls { display: flex; align-items: center; height: 120px; padding: .85rem 1rem; border-bottom: 1px solid var(--line); }
 .tcr-panel-controls p { margin: 0; font-size: .72rem; line-height: 1.7; }
 .tcr-panel-controls small { color: var(--muted); font-size: .62rem; }
 .tcr-panel-controls .search-control { width: 100%; }
@@ -147,3 +147,18 @@ footer { display: grid; grid-template-columns: 1fr auto 1fr; gap: 2rem; align-it
   .tcr-plots > .plot-card + .plot-card { border-left: 0; border-top: 1px solid var(--line); }
   .tcr-toolbar { align-items: start; flex-direction: column; }
 }
+
+.tcr-gene-controls { flex-direction: column; align-items: stretch; justify-content: center; gap: .5rem; }
+.tcr-point-toggle { display: inline-flex; align-items: center; gap: .4rem; color: var(--ink); font-size: .7rem; cursor: pointer; }
+.tcr-panel-controls .tcr-point-toggle input { width: auto; margin: 0; accent-color: var(--green); }
+.hide-individual-points .violin-point { display: none; }
+/* Sequence-detail typography is 50% larger than the original table. */
+#clone-table-card table { font-size: 1.005rem; }
+#clone-table-card th { font-size: .87rem; }
+#clone-table-card td.sequence { font-size: .915rem; }
+#clone-table-card header h2 { font-size: 1.725rem; }
+#clone-table-card header span { font-size: .915rem; }
+#clone-table-card header small { font-size: 1.005rem; }
+#clone-table-card .clone-subsets { min-width: 180px; max-width: 260px; white-space: normal; line-height: 1.6; }
+.clone-subsets > span { white-space: nowrap; }
+.clone-subsets sub { font-size: .7em; line-height: 0; vertical-align: -.28em; }

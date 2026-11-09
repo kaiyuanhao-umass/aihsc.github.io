@@ -55,10 +55,20 @@ const canvas={isConnected:true,clientWidth:400,clientHeight:400,getContext(){ret
 const drawContext=vm.createContext({canvas,window:{devicePixelRatio:1}});
 vm.runInContext(helper+'\n'+app.slice(0,app.indexOf('window.addEventListener("resize"'))+'\nthis.plot=new UmapPlot(canvas);',drawContext);
 const fixture={id:'cd8_activated',total_cells:3,cells:[[0,0,0,0,0,1],[1,1,1,1,1,-1],[2,2,2,1,2,2]],expansion_levels:['Unexpanded','Medium','Large']};
-drawContext.plot.set(fixture,{mode:'clones',cloneMap:new Map([[1,'#111111'],[2,'#222222']]),labels:false,pointScale:1.2});
+drawContext.plot.set(fixture,{mode:'clones',cloneMap:new Map([[1,'#111111'],[2,'#222222']]),labels:false,pointScale:api.POINT_SCALE});
 assert.deepEqual(draws.map(x=>x.color),['#d9ddd9','#111111','#222222']);
-assert(draws.every(x=>Math.abs(x.radius-2.4)<1e-9));
+assert(draws.every(x=>Math.abs(x.radius-1.8)<1e-9));
 draws.length=0;
-drawContext.plot.set(fixture,{mode:'expansion',labels:false,pointScale:1.2});
+drawContext.plot.set(fixture,{mode:'expansion',labels:false,pointScale:api.POINT_SCALE});
 assert.deepEqual(draws.map(x=>x.color),['#d3d3d3','#c82423','#D09922']);
 console.log('PASS: all 34 genes preserve cell membership and zeros in both groupings; top 15 ranking/colors, 17 clone groups, constant-value violins, and highlighted-clone drawing order are correct.');
+
+const subsetOrder=['Stem-like','Intermediate','Terminal','Trm','Teff'];
+for(const [cloneIndex] of top) {
+  const actual=Array.from(api.cloneSubsets(data,cloneIndex,subsetOrder));
+  const expected=subsetOrder.filter(name=>data.cells.some(row=>row[5]===cloneIndex&&data.annotations[row[2]].name===name));
+  assert.deepEqual(actual,expected);
+}
+assert(top.some(([index])=>api.cloneSubsets(data,index).length>1));
+assert.equal(api.POINT_SCALE,.9);
+console.log('PASS: every top-15 clone lists all of its distinct subsets, including multi-subset clones; TCR point radius is 25% smaller.');

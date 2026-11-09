@@ -1,5 +1,6 @@
 /* Descriptive expression distributions; no between-cell significance tests. */
 const TcrExpression = (() => {
+  const POINT_SCALE = .9;
   const SIZE_ORDER = ["Unexpanded", "Medium", "Large"];
   const SIZE_COLORS = {Unexpanded: "#d3d3d3", Medium: "#c82423", Large: "#D09922", "No TCR detected": "#e6e6e6"};
   const CLONE_COLORS = ["#dfbd16", "#b79116", "#347bc1", "#a49bc8", "#eb912b", "#dc545e", "#98bf54", "#865e60", "#318d83", "#26b2b4", "#805eaf", "#dd8fb4", "#667c39", "#bc6940", "#466c83"];
@@ -9,6 +10,12 @@ const TcrExpression = (() => {
     const counts = new Map();
     data.cells.forEach(row => { if (row[5] >= 0) counts.set(row[5], (counts.get(row[5]) || 0) + 1); });
     return [...counts].filter(([, count]) => count > 1).sort((a,b) => b[1]-a[1] || a[0]-b[0]).slice(0,limit);
+  }
+
+  function cloneSubsets(data, cloneIndex, order = []) {
+    const names = new Set(data.cells.filter(row=>row[5]===cloneIndex).map(row=>data.annotations[row[2]].name));
+    const rank = name => { const index=order.indexOf(name); return index<0?order.length:index; };
+    return [...names].sort((a,b)=>rank(a)-rank(b)||a.localeCompare(b));
   }
 
   function groups(data, gene, mode, top = topClones(data)) {
@@ -90,5 +97,5 @@ const TcrExpression = (() => {
     }).join("");
     return `<svg xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${escape(gene)} expression by ${groups.length} TCR groups" viewBox="0 0 ${width} ${height}" style="min-width:${width}px"><title>${escape(gene)} normalized RNA expression</title><desc>Each dot is a cell. Black horizontal marks show medians. All cells, including zeros, are included; violin widths are normalized separately.</desc>${ticks}${shapes}<path d="M ${margin.left},${margin.top} V ${bottom} H ${width-margin.right}" fill="none" stroke="#49564e" stroke-width="1"/><text transform="translate(15,${margin.top+plotHeight/2}) rotate(-90)" text-anchor="middle" class="violin-axis">Normalized expression</text></svg>`;
   }
-  return {SIZE_ORDER,SIZE_COLORS,CLONE_COLORS,topClones,groups,summary,density,svg};
+  return {POINT_SCALE,SIZE_ORDER,SIZE_COLORS,CLONE_COLORS,topClones,cloneSubsets,groups,summary,density,svg};
 })();
