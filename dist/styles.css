@@ -160,5 +160,5 @@ footer { display: grid; grid-template-columns: 1fr auto 1fr; gap: 2rem; align-it
 #clone-table-card header span { font-size: .915rem; }
 #clone-table-card header small { font-size: 1.005rem; }
 #clone-table-card .clone-subsets { min-width: 180px; max-width: 260px; white-space: normal; line-height: 1.6; }
-.clone-subsets > span { white-space: nowrap; }
+.clone-subsets > span { white-space: nowrap; font-weight: 600; }
 .clone-subsets sub { font-size: .7em; line-height: 0; vertical-align: -.28em; }

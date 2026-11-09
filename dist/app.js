@@ -502,6 +502,7 @@ function topClones() { return TcrExpression.topClones(currentData); }
 function renderTcr() {
   document.querySelector("#tcr-cell-count").textContent=`${comma(currentData.cells.length)} cells · Control + AIH pooled`;
   const top=topClones(),cloneMap=new Map(top.map(([index],rank)=>[index,CLONE_COLORS[rank]]));
+  const subsetColors=new Map(currentData.annotations.map((annotation,index)=>[annotation.name,DATASETS.cd8_activated.colors[index%DATASETS.cd8_activated.colors.length]]));
   tcrReferencePlot.set(currentData,{mode:"annotation",condition:"all",pointScale:TcrExpression.POINT_SCALE});
   tcrPlot.set(currentData,{mode:tcrMode==="expansion"?"expansion":"clones",condition:"all",cloneMap,pointScale:TcrExpression.POINT_SCALE});
   document.querySelector("#tcr-plot-title").textContent=tcrMode==="expansion"?"Clone size overview":"Top 15 expanded clones";
@@ -511,7 +512,7 @@ function renderTcr() {
   document.querySelector("#clone-table-card").hidden=tcrMode!=="clones";
   if(tcrMode==="clones") document.querySelector("#clone-table-body").innerHTML=top.map(([cloneIndex,count],rank)=>{
     const clone=currentData.clones[cloneIndex];
-    const subsets=TcrExpression.cloneSubsets(currentData,cloneIndex,DATASETS.cd8_activated.subsetOrder).map(name=>`<span>${displayLabelHtml(name)}</span>`).join(", ");
+    const subsets=TcrExpression.cloneSubsets(currentData,cloneIndex,DATASETS.cd8_activated.subsetOrder).map(name=>`<span style="color:${subsetColors.get(name)}">${displayLabelHtml(name)}</span>`).join(", ");
     return `<tr><td><i class="clone-swatch" style="background:${CLONE_COLORS[rank]}"></i> ${rank+1}</td><td>${escapeHtml(clone.id)}</td><td>${count}</td><td class="clone-subsets">${subsets}</td><td class="sequence">${escapeHtml(clone.cdr3_alpha||"—")}</td><td class="sequence">${escapeHtml(clone.cdr3_beta||"—")}</td></tr>`;
   }).join("");
   renderTcrExpression();
