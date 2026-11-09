@@ -366,6 +366,7 @@ async function renderExpressionExplorer(id, resetGene=false) {
   document.querySelector("#explore-title").textContent=meta.title; document.querySelector("#explore-description").textContent=meta.description;
   document.querySelector("#explore-tcr-button").hidden=!["t_cells","cd8_activated"].includes(id);
   document.querySelector("#explore-tcr-button").dataset.datasetLink=id==="t_cells"?"tcr_total":"tcr";
+  document.querySelector("#tcr-expression-button").hidden=true;
   document.querySelector("#breadcrumb-tail").textContent=meta.breadcrumb.length?`› ${meta.breadcrumb.join(" › ")}`:"";
   if(resetGene || !currentData.genes.includes(currentGene)) currentGene=currentData.default_gene;
   document.querySelector("#explore-gene").value=currentGene; fillGeneLists(currentData);
@@ -492,6 +493,8 @@ async function renderTcrExplorer(id) {
   document.querySelector("#tcr-workspace").classList.toggle("total-tcr",id==="tcr_total");
   document.querySelector("#explore-title").textContent=explorer.title;
   document.querySelector("#explore-tcr-button").hidden=true;
+  document.querySelector("#tcr-expression-button").hidden=false;
+  document.querySelector("#tcr-expression-button").dataset.datasetLink=explorer.dataset;
   document.querySelector("#explore-description").textContent=explorer.description;
   document.querySelector("#breadcrumb-tail").textContent=`› T cells › ${explorer.title}`;
   document.querySelector("#tcr-reference-label").textContent=explorer.label;
