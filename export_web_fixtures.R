@@ -21,8 +21,8 @@ stopifnot(identical(genes_requested, gene_panel$genes))
 dataset_info <- list(
   liver_broad = list(title = "All liver immune cells", default_gene = "Ptprc"),
   monomac = list(title = "Monocytes & Macrophages", default_gene = "Ccr2"),
-  t_cells = list(title = "T-cell expression atlas", default_gene = "Tox"),
-  cd8_activated = list(title = "Activated CD8 T cells", default_gene = "Tox")
+  t_cells = list(title = "T-cell expression atlas", default_gene = "Pdcd1"),
+  cd8_activated = list(title = "Activated CD8 T cells", default_gene = "Pdcd1")
 )
 
 read_sparse_columns <- function(path, requested) {

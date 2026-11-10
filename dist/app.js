@@ -41,7 +41,7 @@ const DATASETS = {
     drilldown: {}, breadcrumb: ["Monocytes & Macrophages"]
   },
   t_cells: {
-    path: "data/t_cells.json?v=20261110-21",
+    path: "data/t_cells.json?v=20261110-25",
     title: "T-cell expression atlas",
     description: "CD4, CD8, regulatory, proliferating, and γδ T-cell states.",
     denominator: "Composition among recovered T cells",
@@ -71,7 +71,7 @@ const DATASETS = {
     breadcrumb: ["T cells"]
   },
   cd8_activated: {
-    path: "data/cd8_activated.json?v=20261110-21",
+    path: "data/cd8_activated.json?v=20261110-25",
     title: "Activated CD8 T cells",
     description: "Stem-like, intermediate, effector, terminal, and tissue-resident memory-like activated states.",
     denominator: "Composition among recovered activated CD8 T cells",
