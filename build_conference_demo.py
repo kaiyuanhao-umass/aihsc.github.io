@@ -28,7 +28,7 @@ replacements = {
     'href="styles.css?': 'href="../styles.css?',
     'src="tcr-expression.js?': 'src="../tcr-expression.js?',
     'src="app.js?': 'src="../app.js?',
-    'Private preview': 'Conference demo',
+    '<span class="private-pill">Private preview</span>': '',
     'Private manuscript companion preview': f'Public conference demo · {count} genes',
     'Open the full explorer': 'Explore the demo',
 }
@@ -37,7 +37,7 @@ for before, after in replacements.items():
     html = html.replace(before, after)
 
 notice = f'''    <section class="demo-notice" aria-label="Demo version">
-      <p><strong>Conference demo</strong><span>Testing version · {count} selected genes</span></p>
+      <p>Testing version · {count} selected genes</p>
       <a href="gene-list.tsv" download>Download the gene list</a>
     </section>
 
