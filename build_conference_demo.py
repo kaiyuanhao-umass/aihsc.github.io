@@ -31,8 +31,6 @@ replacements = {
     'Private preview': 'Conference demo',
     'Private manuscript companion preview': f'Public conference demo · {count} genes',
     'Open the full explorer': 'Explore the demo',
-    '<h2>Private review build</h2><p>Annotations, public sample labels, downloadable matrices, and the final clonotype release remain subject to manuscript sign-off.</p>':
-        f'<h2>Public conference demo</h2><p>This testing version includes {count} selected genes across the expression and TCR explorers. The complete atlas and downloadable datasets are still in development.</p>',
 }
 for before, after in replacements.items():
     assert before in html, f"Template changed: {before}"

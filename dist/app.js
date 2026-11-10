@@ -427,6 +427,7 @@ const tcrPlot = new UmapPlot(document.querySelector("#tcr-canvas"), document.que
 const tcrReferencePlot = new UmapPlot(document.querySelector("#tcr-reference-canvas"));
 
 function showView(name, scroll = true) {
+  if(name==="study" || name==="methods") name="method";
   document.querySelectorAll(".page-view").forEach(view => view.classList.toggle("active", view.dataset.view === name));
   document.querySelectorAll("[data-view-link]").forEach(button => button.classList.toggle("active", button.dataset.viewLink === name));
   if (scroll) window.scrollTo({top:0,behavior:"smooth"});
@@ -675,7 +676,7 @@ function startAtlas() {
   if(atlasStarted)return;
   atlasStarted=true;
   initOverview();
-  const initialHash=location.hash.replace("#","");if(initialHash==="explore")goDataset("liver_broad");else if(["study","methods"].includes(initialHash))showView(initialHash,false);else showView("overview",false);
+  const initialHash=location.hash.replace("#","");if(initialHash==="explore")goDataset("liver_broad");else if(["method","study","methods"].includes(initialHash))showView(initialHash,false);else showView("overview",false);
 }
 
 const ACCESS_PASSWORD_HASH="8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92";

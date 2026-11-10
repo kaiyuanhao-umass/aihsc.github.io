@@ -6,7 +6,7 @@
     <meta name="description" content="Single-cell transcriptomic and TCR resource for a spontaneous mouse model of autoimmune hepatitis.">
     <title>AIH Liver Immune Cell Atlas · Conference Demo</title>
     <link rel="icon" href="data:,">
-    <link rel="stylesheet" href="../styles.css?v=20261110-21">
+    <link rel="stylesheet" href="../styles.css?v=20261110-22">
   </head>
   <body data-public-demo="true">
     <a class="skip-link" href="#main">Skip to content</a>
@@ -30,8 +30,7 @@
             <button type="button" data-dataset-link="tcr"><strong>Activated CD8 T-cell TCR</strong><small>Expansion in activated CD8 states</small></button>
           </div>
         </details>
-        <button class="nav-link" type="button" data-view-link="study">Study design</button>
-        <button class="nav-link" type="button" data-view-link="methods">Methods &amp; data</button>
+        <button class="nav-link" type="button" data-view-link="method">Method</button>
       </nav>
       <div class="header-actions">
         <span class="private-pill">Conference demo</span>
@@ -40,8 +39,7 @@
       <nav class="mobile-nav" id="mobile-nav" aria-label="Mobile navigation" hidden>
         <button type="button" data-view-link="overview">Overview</button>
         <button type="button" data-dataset-link="liver_broad">Explore atlas</button>
-        <button type="button" data-view-link="study">Study design</button>
-        <button type="button" data-view-link="methods">Methods &amp; data</button>
+        <button type="button" data-view-link="method">Method</button>
       </nav>
     </header>
 
@@ -170,21 +168,28 @@
         </div>
       </section>
 
-      <section class="page-view study-view" data-view="study" aria-labelledby="study-title">
-        <div class="narrow-header"><p class="eyebrow">Study design</p><h1 id="study-title">From spontaneous liver inflammation to a navigable immune-cell atlas</h1><p class="lead">The atlas accompanies a study of a spontaneous autoimmune-hepatitis-like mouse model and connects broad immune remodeling with focused myeloid, T-cell, and TCR analyses.</p></div>
+      <section class="page-view method-view" data-view="method" aria-labelledby="method-title">
+        <header class="method-header"><h1 id="method-title">Method</h1></header>
+        <article class="method-protocol" aria-labelledby="sequencing-title">
+          <h2 id="sequencing-title">Single-cell RNA and TCR sequencing</h2>
+          <p>CD3<sup>+</sup> fractions from livers of Het and DKO mice were sorted for paired scRNA/TCR-seq. CD3<sup>−</sup> fractions from livers of 2 Het and 2 DKO mice were pooled within genotype for scRNA-seq. Libraries were generated as previously described.<sup>90</sup> Approximately 20,000 cells per sample were loaded onto a 10x Chromium Chip G and 5′ gene expression libraries were prepared with the Chromium Single-Cell 5′ Library and Gel Bead Kit (10x Genomics) according to the manufacturer's instructions. T cell receptor libraries were prepared from the CD3<sup>+</sup> samples with the mouse T cell Single Cell V(D)J Enrichment Kit (10x Genomics). Library quality was assessed using a TapeStation (Agilent), and libraries were sequenced by NovaSeq6000 (Illumina) to obtain a minimum of 20,000 paired-end reads per cell. Single-cell TCR libraries were multiplexed and sequenced by NovaSeq6000 (Illumina) to obtain a minimum of 5,000 paired-end reads per cell. The sequencing specifications were set according to the manufacturer’s specification (10x Genomics).</p>
+        </article>
         <div class="study-flow" aria-label="Study workflow"><article><span>01</span><h2>Mouse model</h2><p>AIH model (DKO) and Control (Het) mice provide the biological comparison.</p></article><i aria-hidden="true">→</i><article><span>02</span><h2>Liver immune profiling</h2><p>Single-cell RNA sequencing maps immune populations and transcriptional states.</p></article><i aria-hidden="true">→</i><article><span>03</span><h2>Focused resolution</h2><p>Monocyte/macrophage and T-cell subsets are reanalyzed at higher resolution.</p></article><i aria-hidden="true">→</i><article><span>04</span><h2>TCR context</h2><p>Total T-cell and activated CD8 states are linked to clonal expansion and CDR3 sequences.</p></article></div>
         <div class="study-context"><div><p class="kicker">Biological question</p><h2>How does chronic innate immune activation reshape the liver immune compartment and sustain pathogenic T-cell responses?</h2></div><div><p>The atlas is designed as an extension of the manuscript: readers can move beyond the figures, search their own genes of interest, compare conditions, and locate expanded T-cell clonotypes within the total T-cell and activated-CD8 landscapes.</p><a href="https://www.biorxiv.org/content/10.64898/2026.09.25.754422v1" target="_blank" rel="noreferrer">Open the preprint ↗</a></div></div>
-      </section>
-
-      <section class="page-view methods-view" data-view="methods" aria-labelledby="methods-title">
-        <div class="narrow-header"><p class="eyebrow">Methods &amp; data</p><h1 id="methods-title">Transparent data scope and interpretation</h1><p class="lead">Version 1 is liver-only and preserves the analyzed UMAP coordinates and reviewed working annotations from each source object.</p></div>
-        <div class="methods-grid"><article><span>Data scope</span><h2>Liver immune cells only</h2><p>Spleen cells present in some source objects are excluded from every atlas level shown here.</p></article><article><span>Expression</span><h2>Normalized RNA data</h2><p>FeaturePlots and summaries use the Seurat RNA assay data layer. They are descriptive visualizations, not significance tests.</p></article><article><span>Embeddings</span><h2>Preserved source UMAPs</h2><p>Each level is a separately analyzed dataset with its own frozen UMAP. Moving deeper changes resolution rather than filtering the parent embedding.</p></article><article><span>Gene summaries</span><h2>Condition-aware expression</h2><p>Mean normalized expression and the percentage of expressing cells are shown separately for Het and DKO. Cell-level error bars are descriptive and do not represent variation between animals.</p></article><article><span>TCR</span><h2>Sample-aware clones</h2><p>The preview defines displayed clones by biological sample and the source CTaa amino-acid CDR3 identity, retaining available chains. Total T-cell and activated CD8 clone ranks are calculated separately. In the total T-cell explorer, Small, Rare, and no TCR detected form the Unexpanded display group; Medium and Large preserve the source cloneSize categories.</p></article><article><span>Release status</span><h2>Public conference demo</h2><p>This testing version includes 130 selected genes across the expression and TCR explorers. The complete atlas and downloadable datasets are still in development.</p></article></div>
-        <div class="data-table"><div><strong>Atlas level</strong><strong>Cells</strong><strong>Purpose</strong></div><div><span>All liver immune cells</span><span>63,936</span><span>Broad immune landscape</span></div><div><span>Monocytes &amp; Macrophages</span><span>5,648</span><span>High-resolution myeloid states</span></div><div><span>T-cell expression atlas</span><span>25,952</span><span>CD4, CD8 and γδ states</span></div><div><span>Activated CD8 T cells</span><span>3,683</span><span>Activated states and TCR mapping</span></div></div>
+        <table class="data-table" aria-label="Datasets and cell numbers">
+          <thead><tr><th scope="col">Dataset</th><th scope="col">Cells</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">All liver immune cells</th><td>63,936</td></tr>
+            <tr><th scope="row">Monocytes &amp; Macrophages</th><td>5,648</td></tr>
+            <tr><th scope="row">T-cell expression atlas</th><td>25,952</td></tr>
+            <tr><th scope="row">Activated CD8 T cells</th><td>3,683</td></tr>
+          </tbody>
+        </table>
       </section>
     </main>
 
     <footer><div><strong>AIH Mouse Liver Immune Cell Atlas</strong><p>Public conference demo · 130 genes</p></div><div><span>Contact</span><a href="mailto:kaiyuan.hao@umassmed.edu">kaiyuan.hao@umassmed.edu</a></div><button type="button" data-view-link="overview">Back to overview ↑</button></footer>
-    <script src="../tcr-expression.js?v=20261110-21"></script>
-    <script id="atlas-app" src="../app.js?v=20261110-21"></script>
+    <script src="../tcr-expression.js?v=20261110-22"></script>
+    <script id="atlas-app" src="../app.js?v=20261110-22"></script>
   </body>
 </html>

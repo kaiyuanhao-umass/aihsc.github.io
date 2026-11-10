@@ -15,7 +15,7 @@ assert(page.includes('data-public-demo="true"'));
 assert(!/access-password|access-gate|site-locked|Private preview|34 test genes|<base\b/.test(page));
 assert(page.includes('130 selected genes') && page.includes('gene-list.tsv'));
 const demoURL = 'https://kaiyuanhao-umass.github.io/aihsc.github.io/demo/';
-for (const source of ['../app.js?v=20261110-21', '../styles.css?v=20261110-21', '../tcr-expression.js?v=20261110-21']) {
+for (const source of ['../app.js?v=20261110-22', '../styles.css?v=20261110-22', '../tcr-expression.js?v=20261110-22']) {
   assert(page.includes(source));
   assert(fs.existsSync(path.resolve(root, 'dist/demo', source.split('?')[0])));
 }
@@ -40,7 +40,7 @@ for (const publicDemo of [true, false]) {
 
 (async () => {
   const requested = [];
-  const scriptURL = new URL('../app.js?v=20261110-21', demoURL).href;
+  const scriptURL = new URL('../app.js?v=20261110-22', demoURL).href;
   const context = vm.createContext({URL, document: {querySelector(selector) {
     assert.equal(selector, '#atlas-app'); return {src: scriptURL};
   }}, fetch: async url => {
