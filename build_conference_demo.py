@@ -28,7 +28,7 @@ replacements = {
     'href="styles.css?': 'href="../styles.css?',
     'src="tcr-expression.js?': 'src="../tcr-expression.js?',
     'src="app.js?': 'src="../app.js?',
-    '<span class="private-pill">Private preview</span>': '',
+    '        <span class="private-pill">Private preview</span>\n': '',
     'Private manuscript companion preview': f'Public conference demo · {count} genes',
     'Open the full explorer': 'Explore the demo',
 }
