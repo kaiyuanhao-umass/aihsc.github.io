@@ -38,7 +38,6 @@ for before, after in replacements.items():
 
 notice = f'''    <section class="demo-notice" aria-label="Demo version">
       <p>Testing version · {count} selected genes</p>
-      <a href="gene-list.tsv" download>Download the gene list</a>
     </section>
 
 '''

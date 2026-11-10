@@ -5,7 +5,7 @@ Public link: https://kaiyuanhao-umass.github.io/aihsc.github.io/demo/
 The dedicated demo entry opens without a password or an existing browser
 session. The original preview entry keeps its existing access flow. Both
 entries share the current expression/TCR explorer code and 130-gene data.
-The public page is marked as a testing version, with a downloadable gene list.
+The public page is marked as a testing version.
 
 ## Gene coverage
 

@@ -13,7 +13,7 @@ assert.equal(new Set([...panel.panels.activated_cd8_heatmap, ...panel.panels.inf
 for (const gene of ['Nr4a1','Nr4a2','Nr4a3','Dgkh','Nkg7','Klrb1c','Il6','Ccl2','Ccl5']) assert(panel.genes.includes(gene));
 assert(page.includes('data-public-demo="true"'));
 assert(!/access-password|access-gate|site-locked|Private preview|34 test genes|<base\b/.test(page));
-assert(page.includes('130 selected genes') && page.includes('gene-list.tsv'));
+assert(page.includes('130 selected genes') && !page.includes('href="gene-list.tsv"'));
 const demoURL = 'https://kaiyuanhao-umass.github.io/aihsc.github.io/demo/';
 for (const source of ['../app.js?v=20261110-22', '../styles.css?v=20261110-22', '../tcr-expression.js?v=20261110-22']) {
   assert(page.includes(source));
