@@ -30,7 +30,6 @@ replacements = {
     'src="app.js?': 'src="../app.js?',
     '        <span class="private-pill">Private preview</span>\n': '',
     'Private manuscript companion preview': f'Public conference demo · {count} genes',
-    'Open the full explorer': 'Explore the demo',
 }
 for before, after in replacements.items():
     assert before in html, f"Template changed: {before}"

@@ -15,7 +15,7 @@ assert(page.includes('data-public-demo="true"'));
 assert(!/access-password|access-gate|site-locked|Private preview|34 test genes|<base\b/.test(page));
 assert(page.includes('130 selected genes') && !page.includes('href="gene-list.tsv"'));
 const demoURL = 'https://kaiyuanhao-umass.github.io/aihsc.github.io/demo/';
-for (const source of ['../app.js?v=20261110-25', '../styles.css?v=20261110-22', '../tcr-expression.js?v=20261110-22']) {
+for (const source of ['../app.js?v=20261110-25', '../styles.css?v=20261110-26', '../tcr-expression.js?v=20261110-22']) {
   assert(page.includes(source));
   assert(fs.existsSync(path.resolve(root, 'dist/demo', source.split('?')[0])));
 }

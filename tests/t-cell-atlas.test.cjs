@@ -44,15 +44,20 @@ assert.deepEqual(Array.from(context.config.colors), expected.map(row => row[4]))
 assert.equal(context.config.drilldown['Activated CD8+ T cells'], 'cd8_activated');
 assert.equal(Object.keys(context.config.drilldown).length, 1);
 
-for (const [width, height] of [[280,460], [320,460], [360,460], [400,460], [480,480], [620,620], [800,800], [380,460], [500,510]]) {
+// Phone widths account for the page's 16px side padding and workspace border.
+// Their explicit heights no longer transfer a 460px minimum to the grid width.
+for (const [width, height] of [[286,440], [326,440], [341,440], [356,440], [380,440], [396,452], [280,460], [320,460], [360,460], [400,460], [480,480], [620,620], [800,800], [380,460], [500,510]]) {
   const ctx = {setTransform(){},clearRect(){},beginPath(){},arc(){},fill(){},moveTo(){},lineTo(){},stroke(){},strokeText(){},fillText(){},
     measureText(text) { return {width: Array.from(text).length * parseFloat(this.font.split(' ')[1]) * .62}; }};
   const canvas = native ? native.createCanvas(width, height) : {getContext: () => ctx};
   Object.assign(canvas, {clientWidth: width, clientHeight: height, isConnected: true, addEventListener(){}, getBoundingClientRect: () => ({width, height})});
+  context.window.devicePixelRatio = width < 480 ? 2 : 1;
   const plot = new context.Plot(canvas);
   let combinedLayout;
   for (const condition of ['all', 'HET', 'DKO']) {
     plot.set(data, {mode: 'annotation', condition, onLabelClick(){}});
+    assert.equal(canvas.width, width * context.window.devicePixelRatio);
+    assert.equal(canvas.height, height * context.window.devicePixelRatio);
     assert.equal(plot.labelBoxes.length, 10);
     const layout = JSON.stringify(plot.labelBoxes.map(({x,y,width,height}) => ({x,y,width,height})));
     if (combinedLayout) assert.equal(layout, combinedLayout, 'Condition filters must retain label positions');
