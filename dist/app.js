@@ -49,22 +49,36 @@ const DATASETS = {
     colors: ["#dc7369", "#5E9789", "#dad4b9", "#78B7D9", "#9DCAF1", "#C8CDCF", "#446E9C", "#CBE0F0", "#CDB6DA", "#6FB3A2"],
     labelStyle: "external",
     avoidPointOverlap: true,
+    labelFontSize: 12.5,
+    compactLabelFontSize: 11,
+    narrowLabelFontSize: 10,
+    labelOffsetReferenceWidth: 600,
     labelLines: {
       "Activated CD8+ T cells": ["Activated CD8⁺", "T cells"],
+      "Naive CD8+ T cells": ["Naive CD8", "T cells"],
+      "Naive CD4+ T cells": ["Naive CD4", "T cells"],
+      "Naive gd T cells": ["Naive γδ", "T cells"],
+      "RORg+ gd T cells": ["RORγt⁺ γδ", "T cells"],
       "ITGA1+ CD4+ T cells": ["Activated CD4⁺", "T cells I"],
       "CD40LG+ CD4+ T cells": ["Activated CD4⁺", "T cells II"],
       "Proliferating T cells": ["Proliferating", "T cells"]
     },
+    compactLabelLines: {
+      "Activated CD8+ T cells": ["Activated", "CD8⁺ T", "cells"],
+      "ITGA1+ CD4+ T cells": ["Activated", "CD4⁺ T", "cells I"],
+      "CD40LG+ CD4+ T cells": ["Activated", "CD4⁺ T", "cells II"],
+      "CD8aa IELs": ["CD8αα", "IELs"]
+    },
     labelOffsets: {
-      "Activated CD8+ T cells": [-65, 25],
+      "Activated CD8+ T cells": [-12, 40],
       "RORg+ gd T cells": [8, 54],
       "Naive CD8+ T cells": [18, -48],
       "ITGA1+ CD4+ T cells": [-70, -12],
-      "CD40LG+ CD4+ T cells": [26, 36],
+      "CD40LG+ CD4+ T cells": [48, -10],
       "CD8aa IELs": [-55, -42],
-      "Treg": [4, 50],
+      "Treg": [22, 50],
       "Naive CD4+ T cells": [76, -4],
-      "Proliferating T cells": [58, -48],
+      "Proliferating T cells": [28, -48],
       "Naive gd T cells": [-12, -42]
     },
     drilldown: {"Activated CD8+ T cells": "cd8_activated"},
@@ -205,7 +219,7 @@ function pointFreeLabelLayout(labels, points, width, height, radius) {
   const step=2, cols=Math.ceil(width/step)+1, rows=Math.ceil(height/step)+1;
   const occupied=new Uint8Array(cols*rows), summed=new Uint32Array(cols*rows);
   for(const point of points) {
-    const gap=radius+4;
+    const gap=radius+1;
     const left=Math.max(0,Math.floor((point.x-gap)/step)), right=Math.min(cols-1,Math.ceil((point.x+gap)/step));
     const top=Math.max(0,Math.floor((point.y-gap)/step)), bottom=Math.min(rows-1,Math.ceil((point.y+gap)/step));
     for(let y=top;y<=bottom;y++) for(let x=left;x<=right;x++) occupied[y*cols+x]=1;
@@ -218,32 +232,56 @@ function pointFreeLabelLayout(labels, points, width, height, radius) {
     const t=Math.floor(box.y/step)-1, b=Math.ceil((box.y+box.height)/step);
     return summed[b*cols+r]-summed[t*cols+r]-summed[b*cols+l]+summed[t*cols+l]===0;
   };
-  const separate=(a,b)=>a.x+a.width+5<=b.x || b.x+b.width+5<=a.x || a.y+a.height+5<=b.y || b.y+b.height+5<=a.y;
+  const crossesLabel=(from,box)=>{
+    const endX=Math.max(from.x,Math.min(from.x+from.width,from.anchorX));
+    const endY=Math.max(from.y,Math.min(from.y+from.height,from.anchorY));
+    let near=0, far=1;
+    for(const [start,delta,low,high] of [[from.anchorX,endX-from.anchorX,box.x-1,box.x+box.width+1],[from.anchorY,endY-from.anchorY,box.y-1,box.y+box.height+1]]) {
+      if(Math.abs(delta)<.001){if(start<low || start>high)return false;continue;}
+      const a=(low-start)/delta, b=(high-start)/delta;
+      near=Math.max(near,Math.min(a,b));far=Math.min(far,Math.max(a,b));
+      if(near>far)return false;
+    }
+    return true;
+  };
+  const separate=(a,b)=>(a.x+a.width+5<=b.x || b.x+b.width+5<=a.x || a.y+a.height+5<=b.y || b.y+b.height+5<=a.y) && !crossesLabel(a,b) && !crossesLabel(b,a);
   const choices=labels.map(label=>{
     const candidates=[];
     for(let y=8;y+label.height<=height-25;y+=4) for(let x=20;x+label.width<=width-8;x+=4) {
-      const box={x,y,width:label.width,height:label.height,index:label.index};
+      const box={x,y,width:label.width,height:label.height,index:label.index,anchorX:label.baseX,anchorY:label.baseY};
       if(!clear(box)) continue;
       const cx=x+label.width/2, cy=y+label.height/2;
       const dx=Math.max(0,Math.abs(cx-label.baseX)-label.width/2), dy=Math.max(0,Math.abs(cy-label.baseY)-label.height/2);
-      box.score=dx*dx+dy*dy+.35*((cx-label.preferredX)**2+(cy-label.preferredY)**2);
+      // Keep every label beside its own cluster. A global whitespace search
+      // otherwise lets early labels push later ones to the opposite plot edge.
+      if(Math.hypot(dx,dy)>Math.max(64,Math.min(width,height)*.16)) continue;
+      const directionX=label.preferredX-label.baseX, directionY=label.preferredY-label.baseY;
+      const oppositeSide=Math.abs(directionX)>Math.abs(directionY)?(cx-label.baseX)*directionX<0:(cy-label.baseY)*directionY<0;
+      box.score=dx*dx+dy*dy+.3*((cx-label.preferredX)**2+(cy-label.preferredY)**2)+(oppositeSide?600:0);
       candidates.push(box);
     }
     candidates.sort((a,b)=>a.score-b.score);
     return {label,candidates};
   });
-  // Place labels with the fewest available positions first. Retry a different
-  // order before requesting more margin; never accept an overlapping label.
-  for(const order of [choices.slice().sort((a,b)=>a.candidates.length-b.candidates.length),choices.slice().sort((a,b)=>b.label.width*b.label.height-a.label.width*a.label.height)]) {
+  // Try several placement orders so one label cannot take the only nearby
+  // space available to its neighbor. Favor the shortest combined connectors.
+  const constrained=choices.slice().sort((a,b)=>a.candidates.length-b.candidates.length);
+  const orders=[constrained,choices.slice().sort((a,b)=>b.label.width*b.label.height-a.label.width*a.label.height)];
+  for(const first of constrained) orders.push([first,...constrained.filter(choice=>choice!==first)]);
+  let best=null, bestScore=Infinity;
+  for(const order of orders) {
     const placed=[];
     for(const {candidates} of order) {
       const box=candidates.find(candidate=>placed.every(other=>separate(candidate,other)));
       if(!box) break;
       placed.push(box);
     }
-    if(placed.length===labels.length) return new Map(placed.map(box=>[box.index,box]));
+    if(placed.length===labels.length) {
+      const score=placed.reduce((sum,box)=>sum+box.score,0);
+      if(score<bestScore){bestScore=score;best=new Map(placed.map(box=>[box.index,box]));}
+    }
   }
-  return null;
+  return best;
 }
 
 class UmapPlot {
@@ -297,7 +335,8 @@ class UmapPlot {
       const tr=makeTransform(padding);
       const labels=metrics.map(label=>{
         const offset=config.labelOffsets?.[label.annotation.name]||[0,0];
-        return {...label,baseX:tr.x(label.annotation.x),baseY:tr.y(label.annotation.y),preferredX:tr.x(label.annotation.x)+offset[0],preferredY:tr.y(label.annotation.y)+offset[1]};
+        const offsetScale=config.labelOffsetReferenceWidth?rect.width/config.labelOffsetReferenceWidth:1;
+        return {...label,baseX:tr.x(label.annotation.x),baseY:tr.y(label.annotation.y),preferredX:tr.x(label.annotation.x)+offset[0]*offsetScale,preferredY:tr.y(label.annotation.y)+offset[1]*offsetScale};
       });
       const layout=pointFreeLabelLayout(labels,this.data.cells.map(row=>({x:tr.x(row[0]),y:tr.y(row[1])})),rect.width,rect.height,1.25);
       if(layout) {
@@ -354,7 +393,8 @@ class UmapPlot {
       const words = label.split(" "); const lines=[]; let line="";
       words.forEach(word => { const next=(line+" "+word).trim(); if(next.length>maxLabelLength && line){lines.push(line);line=word;}else line=next; }); if(line) lines.push(line);
       if(config.labelLines?.[annotation.name]) lines.splice(0,lines.length,...config.labelLines[annotation.name]);
-      const fontSize=config.labelFontSize ?? (config.labelStyle==="external"?(this.data.total_cells>20000?14:15):(this.data.total_cells>20000?10.5:11.5));
+      if(this.canvas.clientWidth<480 && config.compactLabelLines?.[annotation.name]) lines.splice(0,lines.length,...config.compactLabelLines[annotation.name]);
+      const fontSize=(this.canvas.clientWidth<330?config.narrowLabelFontSize:null) ?? (this.canvas.clientWidth<480?config.compactLabelFontSize:null) ?? config.labelFontSize ?? (config.labelStyle==="external"?(this.data.total_cells>20000?14:15):(this.data.total_cells>20000?10.5:11.5));
       const fontFamily=getComputedStyle(document.body).fontFamily;
       this.ctx.font=`700 ${fontSize}px ${fontFamily}`;
       this.ctx.textAlign="center"; this.ctx.textBaseline="middle";

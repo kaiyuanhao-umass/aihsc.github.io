@@ -64,6 +64,21 @@ for (const [width, height] of [[286,440], [326,440], [341,440], [356,440], [380,
     combinedLayout = layout;
     for (const box of plot.labelBoxes) {
       assert(box.x >= 20 && box.y >= 8 && box.x + box.width <= width - 8 && box.y + box.height <= height - 25, 'Label clipped or overlaps axes');
+      const annotation = data.annotations[box.index];
+      const anchor = {x: plot.tr.x(annotation.x), y: plot.tr.y(annotation.y)};
+      const end = {x: Math.max(box.x, Math.min(box.x + box.width, anchor.x)), y: Math.max(box.y, Math.min(box.y + box.height, anchor.y))};
+      const leaderLength = Math.hypot(end.x - anchor.x, end.y - anchor.y);
+      assert(leaderLength <= (width < 480 ? 64 : 130), `${box.name} drifts too far from its cluster at ${width}px`);
+      // Sample the actual connector every pixel: another annotation must never
+      // interrupt it or make the population association ambiguous.
+      const steps = Math.max(1, Math.ceil(leaderLength));
+      for (let step = 0; step <= steps; step++) {
+        const x = anchor.x + (end.x - anchor.x) * step / steps;
+        const y = anchor.y + (end.y - anchor.y) * step / steps;
+        for (const other of plot.labelBoxes) if (other !== box) {
+          assert(x < other.x || x > other.x + other.width || y < other.y || y > other.y + other.height, `${box.name} connector crosses ${other.name}`);
+        }
+      }
       for (const other of plot.labelBoxes) if (other !== box) assert(separate(box, other), `${box.name} overlaps ${other.name}`);
       for (const row of data.cells) {
         const dot = {x: plot.tr.x(row[0]) - 1.25, y: plot.tr.y(row[1]) - 1.25, width: 2.5, height: 2.5};
@@ -84,4 +99,4 @@ for (const [width, height] of [[286,440], [326,440], [341,440], [356,440], [380,
     assert.deepEqual(data.cells.map(row => [plot.tr.x(row[0]), plot.tr.y(row[1])]), positions, 'Paired UMAPs must align');
   }
 }
-console.log('PASS: 10 manuscript groups/colors, merged CD8 counts/drilldown, no label/dot or label/label overlap, viewport bounds, stable condition labels, and aligned paired UMAPs.');
+console.log('PASS: 10 manuscript groups/colors, merged CD8 counts/drilldown, nearby labels with clear connectors, no label/dot or label/label overlap, viewport bounds, stable condition labels, and aligned paired UMAPs.');
