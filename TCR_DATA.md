@@ -8,6 +8,15 @@ atlas: 25,952 cells across HET1, HET2, DKO1, and DKO2.
 
 ## Definitions
 
+- The total T-cell display combines source `GZMK+ CD8+ Tex` and
+  `KLRG1+ CD8+ Teff` as `Activated CD8+ T cells`: 3,683 liver cells
+  (136 HET and 3,547 DKO). Both expression summaries and total TCR clone
+  subset lists use this union. Source annotations remain unchanged; the
+  exporter validates them before writing the combined display indices.
+- Total T-cell colors follow `tcell.colors` in the manuscript's `DKO T cells.R`.
+  Source identities confirm ITGA1+ CD4 maps to Activated CD4 I and CD40LG+
+  CD4 maps to Activated CD4 II. These manuscript names are display labels.
+  The existing activated CD8 explorer retains its five detailed subsets.
 - Clone identity is biological sample plus the source `CTaa` amino-acid key.
   Identical sequences in different samples remain separate clones. CDR3α/β
   strings are extracted from `t_cdr3s_aa`; missing chains remain missing.
@@ -45,3 +54,15 @@ For the initial extension, every original T-cell coordinate, annotation,
 genotype, and normalized gene value was compared with the preceding website
 fixture and found unchanged. Source metadata validated all 25,952 row
 associations. The existing activated CD8 JSON was not regenerated.
+
+The November 10 annotation update was also compared cell-by-cell with the
+preceding fixture: only the requested annotation union changed. All cell
+coordinates, genotypes, expression values, clone-size assignments and clone
+records were identical. The combined label anchor is the coordinate-wise
+median of its source cells.
+
+`node tests/t-cell-atlas.test.cjs` checks the merged counts, manuscript
+palette, label/point separation, label/label separation, bounds and paired
+UMAP alignment at several viewport sizes and in all condition filters.
+Label placement measures text and searches unoccupied space with a buffer
+around every dot; only uniform scale/translation vary with panel size.

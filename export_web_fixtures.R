@@ -128,8 +128,14 @@ for (dataset_id in requested_datasets) {
   expression <- read_sparse_columns(file.path(dataset_dir, "expression-csc.h5"), genes_requested)
   stopifnot(nrow(cells) == nrow(expression))
 
-  annotations <- unique(as.character(cells$annotation))
-  annotation_index <- match(cells$annotation, annotations) - 1L
+  # Keep the frozen source annotation intact for identity validation below.
+  # Only the website display combines the two activated CD8 populations.
+  display_annotation <- as.character(cells$annotation)
+  if (dataset_id == "t_cells") {
+    display_annotation[display_annotation %in% c("GZMK+ CD8+ Tex", "KLRG1+ CD8+ Teff")] <- "Activated CD8+ T cells"
+  }
+  annotations <- unique(display_annotation)
+  annotation_index <- match(display_annotation, annotations) - 1L
   genotype_index <- ifelse(cells$genotype == "DKO", 1L, 0L)
   tcr <- NULL
   clone_index <- rep(-1L, nrow(cells))
@@ -143,7 +149,7 @@ for (dataset_id in requested_datasets) {
   expansion_index <- match(expansion_values, expansion_levels) - 1L
 
   annotation_records <- lapply(seq_along(annotations), function(index) {
-    mask <- cells$annotation == annotations[[index]]
+    mask <- display_annotation == annotations[[index]]
     list(
       name = annotations[[index]],
       x = round(median(cells$umap_1[mask]), 3),

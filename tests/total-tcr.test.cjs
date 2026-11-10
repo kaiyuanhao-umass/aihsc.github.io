@@ -9,7 +9,7 @@ const api = context.api;
 const data = JSON.parse(fs.readFileSync(path.join(root, 'dist/data/t_cells.json'), 'utf8'));
 assert.equal(data.cells.length, 25952);
 assert.equal(data.genes.length, 34);
-assert.equal(data.annotations.length, 11);
+assert.equal(data.annotations.length, 10);
 assert.deepEqual(data.expansion_levels, ['Unexpanded', 'Medium', 'Large']);
 const sizes = Object.fromEntries(data.expansion_levels.map((name,index)=>[name,data.cells.filter(r=>r[4]===index).length]));
 assert.deepEqual(sizes, {Unexpanded:23998,Medium:1557,Large:397});

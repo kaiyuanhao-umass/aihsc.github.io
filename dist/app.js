@@ -41,14 +41,22 @@ const DATASETS = {
     drilldown: {}, breadcrumb: ["Monocytes & Macrophages"]
   },
   t_cells: {
-    path: "data/t_cells.json?v=20261109-18",
+    path: "data/t_cells.json?v=20261110-20",
     title: "T-cell expression atlas",
     description: "CD4, CD8, regulatory, proliferating, and γδ T-cell states.",
     denominator: "Composition among recovered T cells",
-    colors: ["#739fcb", "#b087bf", "#d96c64", "#69a987", "#d6a542", "#8ab7d2", "#77a8d1", "#a89a60", "#cf7f55", "#77a06d", "#b7748a"],
+    // Manuscript palette from DKO T cells.R, in fixture annotation order.
+    colors: ["#dc7369", "#5E9789", "#dad4b9", "#78B7D9", "#9DCAF1", "#C8CDCF", "#446E9C", "#CBE0F0", "#CDB6DA", "#6FB3A2"],
     labelStyle: "external",
+    avoidPointOverlap: true,
+    labelLines: {
+      "Activated CD8+ T cells": ["Activated CD8⁺", "T cells"],
+      "ITGA1+ CD4+ T cells": ["Activated CD4⁺", "T cells I"],
+      "CD40LG+ CD4+ T cells": ["Activated CD4⁺", "T cells II"],
+      "Proliferating T cells": ["Proliferating", "T cells"]
+    },
     labelOffsets: {
-      "GZMK+ CD8+ Tex": [-72, 24],
+      "Activated CD8+ T cells": [-65, 25],
       "RORg+ gd T cells": [8, 54],
       "Naive CD8+ T cells": [18, -48],
       "ITGA1+ CD4+ T cells": [-70, -12],
@@ -57,10 +65,9 @@ const DATASETS = {
       "Treg": [4, 50],
       "Naive CD4+ T cells": [76, -4],
       "Proliferating T cells": [58, -48],
-      "KLRG1+ CD8+ Teff": [-86, 26],
       "Naive gd T cells": [-12, -42]
     },
-    drilldown: {"GZMK+ CD8+ Tex": "cd8_activated", "KLRG1+ CD8+ Teff": "cd8_activated"},
+    drilldown: {"Activated CD8+ T cells": "cd8_activated"},
     breadcrumb: ["T cells"]
   },
   cd8_activated: {
@@ -95,13 +102,12 @@ const DATASETS = {
 const DISPLAY_LABELS = {
   "Mono/Macrophages": "Monocytes & Macrophages",
   "ILCs": "Others",
-  "GZMK+ CD8+ Tex": "GZMK⁺ CD8 exhausted-like cells",
-  "KLRG1+ CD8+ Teff": "KLRG1⁺ CD8 effector cells",
-  "CD40LG+ CD4+ T cells": "CD40LG⁺ CD4 T cells",
-  "ITGA1+ CD4+ T cells": "ITGA1⁺ CD4 T cells",
+  "Activated CD8+ T cells": "Activated CD8⁺ T cells",
+  "CD40LG+ CD4+ T cells": "Activated CD4⁺ T cells II",
+  "ITGA1+ CD4+ T cells": "Activated CD4⁺ T cells I",
   "Naive CD4+ T cells": "Naive CD4 T cells",
   "Naive CD8+ T cells": "Naive CD8 T cells",
-  "RORg+ gd T cells": "RORγ⁺ γδ T cells",
+  "RORg+ gd T cells": "RORγt⁺ γδ T cells",
   "Naive gd T cells": "Naive γδ T cells",
   "CD8aa IELs": "CD8αα IELs",
   "SLAMF9+ Macrophages": "MoMacs",
@@ -133,6 +139,7 @@ const FEATURE_ORDER_BY_EXPRESSION = false;
 const EXPANSION_COLORS = TcrExpression.SIZE_COLORS;
 const CLONE_COLORS = TcrExpression.CLONE_COLORS;
 const cache = new Map();
+const annotationLayouts = new WeakMap();
 const plots = [];
 
 let currentDatasetId = "liver_broad";
@@ -190,6 +197,53 @@ async function loadDataset(id) {
   return cache.get(id);
 }
 
+// Search white space using an integral occupancy grid: each candidate checks
+// every dot's footprint in constant time, including a gap around the points.
+function pointFreeLabelLayout(labels, points, width, height, radius) {
+  const step=2, cols=Math.ceil(width/step)+1, rows=Math.ceil(height/step)+1;
+  const occupied=new Uint8Array(cols*rows), summed=new Uint32Array(cols*rows);
+  for(const point of points) {
+    const gap=radius+4;
+    const left=Math.max(0,Math.floor((point.x-gap)/step)), right=Math.min(cols-1,Math.ceil((point.x+gap)/step));
+    const top=Math.max(0,Math.floor((point.y-gap)/step)), bottom=Math.min(rows-1,Math.ceil((point.y+gap)/step));
+    for(let y=top;y<=bottom;y++) for(let x=left;x<=right;x++) occupied[y*cols+x]=1;
+  }
+  for(let y=1;y<rows;y++) for(let x=1;x<cols;x++) {
+    const i=y*cols+x; summed[i]=occupied[i]+summed[i-1]+summed[i-cols]-summed[i-cols-1];
+  }
+  const clear=box=>{
+    const l=Math.floor(box.x/step)-1, r=Math.ceil((box.x+box.width)/step);
+    const t=Math.floor(box.y/step)-1, b=Math.ceil((box.y+box.height)/step);
+    return summed[b*cols+r]-summed[t*cols+r]-summed[b*cols+l]+summed[t*cols+l]===0;
+  };
+  const separate=(a,b)=>a.x+a.width+5<=b.x || b.x+b.width+5<=a.x || a.y+a.height+5<=b.y || b.y+b.height+5<=a.y;
+  const choices=labels.map(label=>{
+    const candidates=[];
+    for(let y=8;y+label.height<=height-25;y+=4) for(let x=20;x+label.width<=width-8;x+=4) {
+      const box={x,y,width:label.width,height:label.height,index:label.index};
+      if(!clear(box)) continue;
+      const cx=x+label.width/2, cy=y+label.height/2;
+      const dx=Math.max(0,Math.abs(cx-label.baseX)-label.width/2), dy=Math.max(0,Math.abs(cy-label.baseY)-label.height/2);
+      box.score=dx*dx+dy*dy+.35*((cx-label.preferredX)**2+(cy-label.preferredY)**2);
+      candidates.push(box);
+    }
+    candidates.sort((a,b)=>a.score-b.score);
+    return {label,candidates};
+  });
+  // Place labels with the fewest available positions first. Retry a different
+  // order before requesting more margin; never accept an overlapping label.
+  for(const order of [choices.slice().sort((a,b)=>a.candidates.length-b.candidates.length),choices.slice().sort((a,b)=>b.label.width*b.label.height-a.label.width*a.label.height)]) {
+    const placed=[];
+    for(const {candidates} of order) {
+      const box=candidates.find(candidate=>placed.every(other=>separate(candidate,other)));
+      if(!box) break;
+      placed.push(box);
+    }
+    if(placed.length===labels.length) return new Map(placed.map(box=>[box.index,box]));
+  }
+  return null;
+}
+
 class UmapPlot {
   constructor(canvas, tooltip = null) {
     this.canvas = canvas;
@@ -220,11 +274,39 @@ class UmapPlot {
     const xs = this.data.cells.map(row => row[0]);
     const ys = this.data.cells.map(row => row[1]);
     const minX = Math.min(...xs), maxX = Math.max(...xs), minY = Math.min(...ys), maxY = Math.max(...ys);
-    const pad = Math.min(rect.width, rect.height) * (DATASETS[this.data.id]?.paddingFactor ?? .09);
-    const scale = Math.min((rect.width - pad * 2) / Math.max(.001, maxX-minX), (rect.height - pad * 2) / Math.max(.001, maxY-minY));
-    const plotW = (maxX-minX)*scale, plotH=(maxY-minY)*scale;
-    const ox=(rect.width-plotW)/2, oy=(rect.height-plotH)/2;
-    return {x: value => ox+(value-minX)*scale, y: value => rect.height-(oy+(value-minY)*scale)};
+    const config=DATASETS[this.data.id];
+    const makeTransform=padding=>{
+      const pad=Math.min(rect.width,rect.height)*padding;
+      const scale=Math.min((rect.width-pad*2)/Math.max(.001,maxX-minX),(rect.height-pad*2)/Math.max(.001,maxY-minY));
+      const plotW=(maxX-minX)*scale, plotH=(maxY-minY)*scale;
+      const ox=(rect.width-plotW)/2, oy=(rect.height-plotH)/2;
+      return {x:value=>ox+(value-minX)*scale,y:value=>rect.height-(oy+(value-minY)*scale)};
+    };
+    if(!config.avoidPointOverlap || ((this.options.mode||"annotation")!=="annotation" && !this.options.matchAnnotationLayout)) return makeTransform(config.paddingFactor??.09);
+    const metrics=this.labelMetrics(config);
+    const key=JSON.stringify([rect.width,rect.height,metrics.map(label=>[label.width,label.height])]);
+    const cached=annotationLayouts.get(this.data)?.get(key);
+    if(cached) {
+      this.pointFreeLabels=cached.labels; return cached.transform;
+    }
+    // Use all cells for a stable layout across conditions and paired panels.
+    // Only uniform scale and translation change; frozen coordinates stay intact.
+    for(let padding=.12;padding<=.4001;padding+=.02) {
+      const tr=makeTransform(padding);
+      const labels=metrics.map(label=>{
+        const offset=config.labelOffsets?.[label.annotation.name]||[0,0];
+        return {...label,baseX:tr.x(label.annotation.x),baseY:tr.y(label.annotation.y),preferredX:tr.x(label.annotation.x)+offset[0],preferredY:tr.y(label.annotation.y)+offset[1]};
+      });
+      const layout=pointFreeLabelLayout(labels,this.data.cells.map(row=>({x:tr.x(row[0]),y:tr.y(row[1])})),rect.width,rect.height,1.25);
+      if(layout) {
+        this.pointFreeLabels=layout;
+        if(!annotationLayouts.has(this.data)) annotationLayouts.set(this.data,new Map());
+        annotationLayouts.get(this.data).set(key,{labels:layout,transform:tr});
+        return tr;
+      }
+    }
+    // A minimum plot height in CSS keeps even narrow phone panels readable.
+    throw new Error("The T-cell plot needs more space for its labels.");
   }
 
   render() {
@@ -263,27 +345,39 @@ class UmapPlot {
     if (mode === "annotation" && this.options.labels !== false) this.drawLabels(visible, tr, config);
   }
 
-  drawLabels(visible, tr, config) {
-    const counts = new Map(); visible.forEach(row => counts.set(row[2], (counts.get(row[2])||0)+1));
-    this.data.annotations.forEach((annotation, index) => {
-      if (!counts.get(index)) return;
+  labelMetrics(config) {
+    return this.data.annotations.map((annotation,index)=>{
       const label = displayLabel(annotation.name); const labelParts=DISPLAY_LABEL_PARTS[annotation.name];
       const maxLabelLength=config.labelStyle==="external"?18:24;
       const words = label.split(" "); const lines=[]; let line="";
       words.forEach(word => { const next=(line+" "+word).trim(); if(next.length>maxLabelLength && line){lines.push(line);line=word;}else line=next; }); if(line) lines.push(line);
-      const baseX=tr.x(annotation.x), baseY=tr.y(annotation.y);
-      const offset=config.labelOffsets?.[annotation.name] || [0,0];
-      const offsetScale=config.labelOffsetReferenceWidth?this.canvas.clientWidth/config.labelOffsetReferenceWidth:1;
-      let x=baseX+offset[0]*offsetScale, y=baseY+offset[1]*offsetScale; const fontSize=config.labelFontSize ?? (config.labelStyle==="external"?(this.data.total_cells>20000?14:15):(this.data.total_cells>20000?10.5:11.5));
+      if(config.labelLines?.[annotation.name]) lines.splice(0,lines.length,...config.labelLines[annotation.name]);
+      const fontSize=config.labelFontSize ?? (config.labelStyle==="external"?(this.data.total_cells>20000?14:15):(this.data.total_cells>20000?10.5:11.5));
       const fontFamily=getComputedStyle(document.body).fontFamily;
       this.ctx.font=`700 ${fontSize}px ${fontFamily}`;
       this.ctx.textAlign="center"; this.ctx.textBaseline="middle";
       let richWidth=0;
       if(labelParts){this.ctx.font=`700 ${fontSize}px ${fontFamily}`;richWidth=this.ctx.measureText(labelParts[0]).width;this.ctx.font=`700 ${fontSize*.7}px ${fontFamily}`;richWidth+=this.ctx.measureText(labelParts[1]).width;this.ctx.font=`700 ${fontSize}px ${fontFamily}`;}
       const width=(labelParts?richWidth:Math.max(...lines.map(value=>this.ctx.measureText(value).width)))+12; const height=(labelParts?fontSize+4:lines.length*(fontSize+2))+8;
+      return {annotation,index,lines,labelParts,fontSize,fontFamily,richWidth,width,height};
+    });
+  }
+
+  drawLabels(visible, tr, config) {
+    const counts = new Map(); visible.forEach(row => counts.set(row[2], (counts.get(row[2])||0)+1));
+    this.labelMetrics(config).forEach(({annotation,index,lines,labelParts,fontSize,fontFamily,richWidth,width,height}) => {
+      if (!counts.get(index)) return;
+      const baseX=tr.x(annotation.x), baseY=tr.y(annotation.y);
+      const offset=config.labelOffsets?.[annotation.name] || [0,0];
+      const offsetScale=config.labelOffsetReferenceWidth?this.canvas.clientWidth/config.labelOffsetReferenceWidth:1;
+      let x=baseX+offset[0]*offsetScale, y=baseY+offset[1]*offsetScale;
+      this.ctx.font=`700 ${fontSize}px ${fontFamily}`;
+      this.ctx.textAlign="center"; this.ctx.textBaseline="middle";
       x=Math.max(width/2+5,Math.min(this.canvas.clientWidth-width/2-5,x));
       y=Math.max(height/2+5,Math.min(this.canvas.clientHeight-height/2-5,y));
-      if(this.options.avoidLabelOverlap) {
+      if(config.avoidPointOverlap) {
+        const box=this.pointFreeLabels.get(index); x=box.x+box.width/2; y=box.y+box.height/2;
+      } else if(this.options.avoidLabelOverlap) {
         const clamp=(px,py)=>({x:Math.max(width/2+20,Math.min(this.canvas.clientWidth-width/2-8,px)),y:Math.max(height/2+8,Math.min(this.canvas.clientHeight-height/2-25,py))});
         const fits=point=>this.labelBoxes.every(box=>point.x+width/2+4<=box.x || point.x-width/2-4>=box.x+box.width || point.y+height/2+4<=box.y || point.y-height/2-4>=box.y+box.height);
         let position=clamp(x,y);
@@ -297,7 +391,8 @@ class UmapPlot {
       }
       const labelColor=config.colors[index % config.colors.length];
       if(config.labelStyle==="external" && (offset[0] || offset[1])) {
-        this.ctx.beginPath(); this.ctx.moveTo(baseX,baseY); this.ctx.lineTo(x,y); this.ctx.strokeStyle=labelColor; this.ctx.globalAlpha=.7; this.ctx.lineWidth=1.2; this.ctx.stroke(); this.ctx.globalAlpha=1;
+        const endX=Math.max(x-width/2,Math.min(x+width/2,baseX)), endY=Math.max(y-height/2,Math.min(y+height/2,baseY));
+        this.ctx.beginPath(); this.ctx.moveTo(baseX,baseY); this.ctx.lineTo(endX,endY); this.ctx.strokeStyle=labelColor; this.ctx.globalAlpha=.7; this.ctx.lineWidth=1.2; this.ctx.stroke(); this.ctx.globalAlpha=1;
       }
       this.ctx.strokeStyle="rgba(255,255,255,.96)"; this.ctx.lineWidth=config.labelStyle==="external"?3.5:5;
       if(labelParts){
@@ -379,6 +474,7 @@ function closeAdvancedViews() {
 
 function renderSingleGene() {
   if(!currentData) return; const meta=DATASETS[currentDatasetId];
+  document.querySelector("#single-gene-view").classList.toggle("t-cell-plots",currentDatasetId==="t_cells");
   const legend=document.querySelector("#annotation-legend");
   legend.hidden=!meta.legend;
   legend.closest(".paired-plots").classList.toggle("with-subset-legend",Boolean(meta.legend));
@@ -387,7 +483,7 @@ function renderSingleGene() {
     return `<li><i aria-hidden="true" style="background:${meta.colors[index]}"></i><span>${escapeHtml(description)} (${displayLabelHtml(name)})</span></li>`;
   }).join("");
   annotationPlot.set(currentData,{mode:"annotation",condition:exploreCondition,onLabelClick:labelClick});
-  featurePlot.set(currentData,{mode:"gene",gene:currentGene,condition:exploreCondition});
+  featurePlot.set(currentData,{mode:"gene",gene:currentGene,condition:exploreCondition,matchAnnotationLayout:true});
   const visible=currentData.cells.filter(row=>conditionMatches(row,exploreCondition)).length;
   document.querySelector("#annotation-count").textContent=`${comma(visible)} cells`;
   document.querySelector("#feature-title").textContent=currentGene;
@@ -543,7 +639,7 @@ function renderTcr() {
   const top=topClones(),cloneMap=new Map(top.map(([index],rank)=>[index,CLONE_COLORS[rank]]));
   const subsetColors=new Map(currentData.annotations.map((annotation,index)=>[annotation.name,meta.colors[index%meta.colors.length]]));
   tcrReferencePlot.set(currentData,{mode:"annotation",condition:"all",pointScale:TcrExpression.POINT_SCALE,avoidLabelOverlap:currentData.id==="t_cells"});
-  tcrPlot.set(currentData,{mode:tcrMode==="expansion"?"expansion":"clones",condition:"all",cloneMap,pointScale:TcrExpression.POINT_SCALE});
+  tcrPlot.set(currentData,{mode:tcrMode==="expansion"?"expansion":"clones",condition:"all",cloneMap,pointScale:TcrExpression.POINT_SCALE,matchAnnotationLayout:true});
   document.querySelector("#tcr-plot-title").textContent=tcrMode==="expansion"?"Clone size overview":"Top 15 expanded clones";
   const key=document.querySelector("#tcr-key");
   const unexpandedNote=currentData.id==="t_cells"?"Small, Rare, and no TCR detected combined for display; missing TCR does not establish non-expansion.":"Existing manuscript category; includes small, rare, and missing clone-size assignments.";
