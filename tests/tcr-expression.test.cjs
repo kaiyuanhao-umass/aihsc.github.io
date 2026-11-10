@@ -8,7 +8,7 @@ const context = vm.createContext({});
 vm.runInContext(helper+';this.api=TcrExpression;',context);
 const api = context.api;
 const data = JSON.parse(fs.readFileSync(path.join(root,'dist/data/cd8_activated.json'),'utf8'));
-assert.equal(data.genes.length,34);
+assert.deepEqual(data.genes, JSON.parse(fs.readFileSync(path.join(root, 'demo-genes.json'), 'utf8')).genes);
 const top = api.topClones(data);
 assert.equal(top.length,15);
 assert.equal(new Set(top.map(([index])=>index)).size,15);
@@ -61,7 +61,7 @@ assert(draws.every(x=>Math.abs(x.radius-1.8)<1e-9));
 draws.length=0;
 drawContext.plot.set(fixture,{mode:'expansion',labels:false,pointScale:api.POINT_SCALE});
 assert.deepEqual(draws.map(x=>x.color),['#d3d3d3','#c82423','#D09922']);
-console.log('PASS: all 34 genes preserve cell membership and zeros in both groupings; top 15 ranking/colors, 17 clone groups, constant-value violins, and highlighted-clone drawing order are correct.');
+console.log('PASS: all 130 genes preserve cell membership and zeros in both groupings; top 15 ranking/colors, 17 clone groups, constant-value violins, and highlighted-clone drawing order are correct.');
 
 const subsetOrder=['Stem-like','Intermediate','Terminal','Trm','Teff'];
 for(const [cloneIndex] of top) {

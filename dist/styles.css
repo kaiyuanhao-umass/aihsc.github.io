@@ -172,3 +172,7 @@ footer { display: grid; grid-template-columns: 1fr auto 1fr; gap: 2rem; align-it
 /* Keep room for ten external labels on phone and narrow desktop panels. */
 .t-cell-plots .plot-frame { min-height: 460px; }
 .tcr-workspace.total-tcr { --tcr-plot-height: clamp(460px, 29vw, 510px); }
+
+.demo-notice { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .6rem 1.5rem; padding: .7rem clamp(1rem, 4vw, 4.5rem); background: var(--green-soft); color: var(--green-dark); border-bottom: 1px solid #cbd9cc; font-size: .78rem; }
+.demo-notice p { display: flex; flex-wrap: wrap; gap: .3rem 1rem; margin: 0; }
+.demo-notice a { color: inherit; text-underline-offset: 3px; }

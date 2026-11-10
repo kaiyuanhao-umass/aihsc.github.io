@@ -6,7 +6,7 @@
     <meta name="description" content="Single-cell transcriptomic and TCR resource for a spontaneous mouse model of autoimmune hepatitis.">
     <title>Autoimmune Hepatitis Mouse Model Liver Immune Cell Atlas</title>
     <link rel="icon" href="data:,">
-    <link rel="stylesheet" href="styles.css?v=20261110-20">
+    <link rel="stylesheet" href="styles.css?v=20261110-21">
   </head>
   <body class="site-locked">
     <section class="access-gate" id="access-gate" aria-labelledby="access-title">
@@ -166,7 +166,7 @@
             </article>
             <article class="plot-card tcr-expression-card">
               <header><div><span>Gene expression</span><h2 id="tcr-violin-title">Gzmk</h2></div><strong id="tcr-violin-grouping">By clone size</strong></header>
-              <form id="tcr-gene-form" class="tcr-panel-controls tcr-gene-controls"><div class="search-control"><label for="tcr-gene">Gene of interest · 34 test genes</label><div><input id="tcr-gene" list="tcr-genes" value="Gzmk" autocomplete="off" required><button type="submit">Show</button></div><datalist id="tcr-genes"></datalist></div><label class="tcr-point-toggle" for="tcr-show-points"><input id="tcr-show-points" type="checkbox" checked>Show individual cells</label></form>
+              <form id="tcr-gene-form" class="tcr-panel-controls tcr-gene-controls"><div class="search-control"><label id="tcr-gene-label" for="tcr-gene">Gene of interest</label><div><input id="tcr-gene" list="tcr-genes" value="Gzmk" autocomplete="off" required><button type="submit">Show</button></div><datalist id="tcr-genes"></datalist></div><label class="tcr-point-toggle" for="tcr-show-points"><input id="tcr-show-points" type="checkbox" checked>Show individual cells</label></form>
               <div id="tcr-violin-chart" class="tcr-violin-scroll" role="region" aria-label="Gene expression violins" tabindex="0"></div>
               <p class="tcr-scroll-hint" id="tcr-scroll-hint" hidden>Scroll horizontally to compare all clone groups →</p>
               <p class="plot-note">Black bars show medians. All cells, including zeros, contribute whether points are shown or hidden. Control and AIH cells are pooled.</p>
@@ -192,7 +192,7 @@
     </main>
 
     <footer><div><strong>AIH Mouse Liver Immune Cell Atlas</strong><p>Private manuscript companion preview</p></div><div><span>Contact</span><a href="mailto:kaiyuan.hao@umassmed.edu">kaiyuan.hao@umassmed.edu</a></div><button type="button" data-view-link="overview">Back to overview ↑</button></footer>
-    <script src="tcr-expression.js?v=20261110-20"></script>
-    <script src="app.js?v=20261110-20"></script>
+    <script src="tcr-expression.js?v=20261110-21"></script>
+    <script id="atlas-app" src="app.js?v=20261110-21"></script>
   </body>
 </html>

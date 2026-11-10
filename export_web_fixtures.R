@@ -14,13 +14,9 @@ release_root <- file.path(workspace_root, "portal-data", "releases", "private-pr
 output_root <- file.path(site_root, "dist", "data")
 dir.create(output_root, recursive = TRUE, showWarnings = FALSE)
 
-genes_requested <- c(
-  "Ptprc", "Cd3d", "Cd3e", "Cd8a", "Cd4", "Nkg7", "Ms4a1", "Lyz2",
-  "Adgre1", "Ccr2", "Ly6c2", "S100a8", "S100a9", "Xcr1", "Clec4f",
-  "Marco", "Slamf9", "Ifng", "Tox", "Pdcd1", "Gzmk", "Klrg1", "Cxcr6",
-  "Slamf6", "Gzmb", "Il7r", "Foxp3", "Tcf7", "Cxcl10", "Isg15", "Stat1",
-  "Tnf", "Il27", "Il27ra"
-)
+gene_panel <- read_json(file.path(site_root, "demo-genes.json"), simplifyVector = TRUE)
+genes_requested <- unique(unlist(gene_panel$panels, use.names = FALSE))
+stopifnot(identical(genes_requested, gene_panel$genes))
 
 dataset_info <- list(
   liver_broad = list(title = "All liver immune cells", default_gene = "Ptprc"),
@@ -31,6 +27,8 @@ dataset_info <- list(
 
 read_sparse_columns <- function(path, requested) {
   var_names <- h5read(path, "var_names")
+  missing <- setdiff(requested, var_names)
+  if (length(missing)) stop("Requested genes missing from ", path, ": ", paste(missing, collapse = ", "))
   genes <- requested[requested %in% var_names]
   indptr <- as.numeric(h5read(path, "X/indptr"))
   shape <- as.integer(h5read(path, "X/shape"))
@@ -47,6 +45,29 @@ read_sparse_columns <- function(path, requested) {
     }
   }
   result
+}
+
+# Gene-only releases reuse validated cell/clone records. Verify alignment and
+# every previously exported expression value before adding any new columns.
+refresh_expression_payload <- function(path, cells, expression, dataset_id, annotations, annotation_index, genotype_index) {
+  payload <- read_json(path, simplifyVector = FALSE)
+  previous <- do.call(rbind, lapply(payload$cells, unlist, use.names = FALSE))
+  stopifnot(
+    identical(payload$id, dataset_id),
+    payload$total_cells == nrow(cells), nrow(previous) == nrow(cells),
+    identical(unname(vapply(payload$annotations, function(a) a$name, character(1))), annotations),
+    all(previous[, 1] == round(cells$umap_1, 3)),
+    all(previous[, 2] == round(cells$umap_2, 3)),
+    all(previous[, 3] == annotation_index), all(previous[, 4] == genotype_index)
+  )
+  previous_genes <- unlist(payload$genes, use.names = FALSE)
+  stopifnot(all(previous_genes %in% colnames(expression)))
+  stopifnot(all(previous[, 6 + seq_along(previous_genes), drop = FALSE] == round(expression[, previous_genes, drop = FALSE], 3)))
+  payload$genes <- colnames(expression)
+  payload$columns <- c(unlist(payload$columns, use.names = FALSE)[1:6], colnames(expression))
+  payload$cells <- lapply(seq_len(nrow(cells)), function(i) c(previous[i, 1:6], round(expression[i, ], 3)))
+  write_json(payload, path, auto_unbox = TRUE, na = "null", null = "null", digits = NA, pretty = FALSE)
+  message("Validated all existing expression values and cell annotations; preserved clone records for ", dataset_id)
 }
 
 split_cdr3 <- function(value, chain) {
@@ -120,6 +141,8 @@ make_tcr_payload <- function(cells, dataset_id) {
 }
 
 requested_datasets <- commandArgs(trailingOnly = TRUE)
+genes_only <- "--genes-only" %in% requested_datasets
+requested_datasets <- setdiff(requested_datasets, "--genes-only")
 if (!length(requested_datasets)) requested_datasets <- names(dataset_info)
 stopifnot(all(requested_datasets %in% names(dataset_info)))
 for (dataset_id in requested_datasets) {
@@ -137,6 +160,12 @@ for (dataset_id in requested_datasets) {
   annotations <- unique(display_annotation)
   annotation_index <- match(display_annotation, annotations) - 1L
   genotype_index <- ifelse(cells$genotype == "DKO", 1L, 0L)
+  if (genes_only) {
+    output_path <- file.path(output_root, paste0(dataset_id, ".json"))
+    refresh_expression_payload(output_path, cells, expression, dataset_id, annotations, annotation_index, genotype_index)
+    cat(sprintf("WROTE\t%s\t%d cells\t%d genes\n", output_path, nrow(cells), ncol(expression)))
+    next
+  }
   tcr <- NULL
   clone_index <- rep(-1L, nrow(cells))
   if (dataset_id %in% c("cd8_activated", "t_cells")) {

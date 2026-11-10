@@ -1,6 +1,6 @@
 const DATASETS = {
   liver_broad: {
-    path: "data/liver_broad.json",
+    path: "data/liver_broad.json?v=20261110-21",
     title: "All liver immune cells",
     description: "A broad view of the liver immune landscape.",
     denominator: "Composition among all recovered liver immune cells",
@@ -22,7 +22,7 @@ const DATASETS = {
     breadcrumb: []
   },
   monomac: {
-    path: "data/monomac.json",
+    path: "data/monomac.json?v=20261110-21",
     title: "Monocytes & Macrophages",
     description: "High-resolution monocyte and macrophage populations.",
     denominator: "Composition among recovered monocytes and macrophages",
@@ -41,7 +41,7 @@ const DATASETS = {
     drilldown: {}, breadcrumb: ["Monocytes & Macrophages"]
   },
   t_cells: {
-    path: "data/t_cells.json?v=20261110-20",
+    path: "data/t_cells.json?v=20261110-21",
     title: "T-cell expression atlas",
     description: "CD4, CD8, regulatory, proliferating, and γδ T-cell states.",
     denominator: "Composition among recovered T cells",
@@ -71,7 +71,7 @@ const DATASETS = {
     breadcrumb: ["T cells"]
   },
   cd8_activated: {
-    path: "data/cd8_activated.json",
+    path: "data/cd8_activated.json?v=20261110-21",
     title: "Activated CD8 T cells",
     description: "Stem-like, intermediate, effector, terminal, and tissue-resident memory-like activated states.",
     denominator: "Composition among recovered activated CD8 T cells",
@@ -186,7 +186,9 @@ function percentile(values, q = .98) {
 
 async function loadDataset(id) {
   if (!cache.has(id)) {
-    cache.set(id, fetch(DATASETS[id].path).then(response => {
+    // Resolve against the shared app asset so /demo/ loads the same fixtures.
+    const url=new URL(DATASETS[id].path,document.querySelector("#atlas-app").src);
+    cache.set(id, fetch(url).then(response => {
       if (!response.ok) throw new Error(`Unable to load ${DATASETS[id].title}`);
       return response.json();
     }).then(data => {
@@ -495,7 +497,7 @@ function renderSingleGene() {
   renderExpressionSummary();
 }
 
-document.querySelector("#explore-show-gene").addEventListener("click",()=>{const gene=validGene(currentData,document.querySelector("#explore-gene").value);if(!gene){document.querySelector("#explore-gene").setCustomValidity("Choose a gene available in this review build.");document.querySelector("#explore-gene").reportValidity();return;}document.querySelector("#explore-gene").setCustomValidity("");currentGene=gene;renderSingleGene();});
+document.querySelector("#explore-show-gene").addEventListener("click",()=>{const gene=validGene(currentData,document.querySelector("#explore-gene").value);if(!gene){document.querySelector("#explore-gene").setCustomValidity("Choose a gene available in this testing version.");document.querySelector("#explore-gene").reportValidity();return;}document.querySelector("#explore-gene").setCustomValidity("");currentGene=gene;renderSingleGene();});
 document.querySelector("#explore-gene").addEventListener("keydown",event=>{if(event.key==="Enter")document.querySelector("#explore-show-gene").click();});
 
 document.querySelectorAll("[data-condition-group]").forEach(group=>group.addEventListener("click",event=>{
@@ -534,7 +536,7 @@ async function initOverview() {
   const data=await loadDataset("liver_broad"); const options=data.genes.map(gene=>`<option value="${gene}"></option>`).join(""); document.querySelector("#overview-genes").innerHTML=options; renderOverviewPlot();
 }
 function renderOverviewPlot() { document.querySelector("#overview-show-annotations").textContent=overviewMode==="gene"?"Return to Subset Annotation":"Subset Annotation";loadDataset("liver_broad").then(data=>{const scale=document.querySelector("#overview-expression-scale");scale.hidden=overviewMode!=="gene";if(overviewMode==="gene")document.querySelector("#overview-scale-high").textContent=scaleLabel(percentile(data.cells.map(row=>row[data.geneIndex[overviewGene]])));overviewPlot.set(data,{mode:overviewMode,gene:overviewGene,condition:overviewCondition,onLabelClick:name=>{const target=DATASETS.liver_broad.drilldown[name];if(target)goDataset(target);}});}); }
-document.querySelector("#overview-show-gene").addEventListener("click",async()=>{const data=await loadDataset("liver_broad");const gene=validGene(data,document.querySelector("#overview-gene").value);if(!gene){document.querySelector("#overview-gene").setCustomValidity("Choose a gene available in this review build.");document.querySelector("#overview-gene").reportValidity();return;}document.querySelector("#overview-gene").setCustomValidity("");overviewGene=gene;overviewMode="gene";document.querySelector("#overview-help").innerHTML=`Showing normalized <strong>${escapeHtml(gene)}</strong> expression. Use “Return to Subset Annotation” to restore annotated drill-down.`;renderOverviewPlot();});
+document.querySelector("#overview-show-gene").addEventListener("click",async()=>{const data=await loadDataset("liver_broad");const gene=validGene(data,document.querySelector("#overview-gene").value);if(!gene){document.querySelector("#overview-gene").setCustomValidity("Choose a gene available in this testing version.");document.querySelector("#overview-gene").reportValidity();return;}document.querySelector("#overview-gene").setCustomValidity("");overviewGene=gene;overviewMode="gene";document.querySelector("#overview-help").innerHTML=`Showing normalized <strong>${escapeHtml(gene)}</strong> expression. Use “Return to Subset Annotation” to restore annotated drill-down.`;renderOverviewPlot();});
 document.querySelector("#overview-gene").addEventListener("keydown",event=>{if(event.key==="Enter")document.querySelector("#overview-show-gene").click();});
 document.querySelector("#overview-show-annotations").addEventListener("click",()=>{overviewMode="annotation";document.querySelector("#overview-help").innerHTML="Population names are shown directly. Select <strong>Monocytes &amp; Macrophages</strong> or <strong>T cells</strong> to open the corresponding high-resolution explorer.";renderOverviewPlot();});
 
@@ -602,6 +604,7 @@ async function renderTcrExplorer(id) {
   document.querySelector("#tcr-scope-note").textContent=id==="tcr_total"
     ? "Descriptive cell-level distributions across two Control and two AIH liver samples. Cells from the same clone or sample are not independent biological replicates. Unexpanded combines Small, Rare, and no TCR detected; missing TCR does not establish biological non-expansion. Medium and Large retain the source cloneSize categories. Clone ranks and counts are calculated within this explorer."
     : "Descriptive cell-level distributions. Cells from the same clone or sample are not independent biological replicates. Unexpanded retains the manuscript grouping, including missing clone-size assignments. Clone ranks and counts are calculated within this explorer.";
+  document.querySelector("#tcr-gene-label").textContent=`Gene of interest · ${currentData.genes.length} genes`;
   document.querySelector("#tcr-genes").innerHTML=currentData.genes.map(gene=>`<option value="${escapeHtml(gene)}"></option>`).join("");
   if(!currentData.genes.includes(tcrGene))tcrGene=currentData.default_gene;
   document.querySelector("#tcr-gene").value=tcrGene;
@@ -616,7 +619,7 @@ document.querySelectorAll("[data-tcr-mode]").forEach(button=>button.addEventList
 document.querySelector("#tcr-gene-form").addEventListener("submit",event=>{
   event.preventDefault();
   const input=document.querySelector("#tcr-gene"),gene=validGene(currentData,input.value);
-  if(!gene){input.setCustomValidity("Choose one of the 34 genes available in this test preview.");input.reportValidity();return;}
+  if(!gene){input.setCustomValidity(`Choose one of the ${currentData.genes.length} genes available in this testing version.`);input.reportValidity();return;}
   input.setCustomValidity("");tcrGene=gene;input.value=gene;renderTcrExpression();
 });
 document.querySelector("#tcr-gene").addEventListener("input",event=>event.target.setCustomValidity(""));
@@ -687,10 +690,14 @@ function revealAtlas() {
   document.querySelector("#access-gate").hidden=true;
   startAtlas();
 }
-document.querySelector("#access-form").addEventListener("submit",async event=>{
-  event.preventDefault();
-  const input=document.querySelector("#access-password"),error=document.querySelector("#access-error");
-  if(await sha256(input.value)===ACCESS_PASSWORD_HASH){input.setAttribute("aria-invalid","false");revealAtlas();return;}
-  input.setAttribute("aria-invalid","true");input.value="";error.hidden=false;input.focus();
-});
-if(sessionStorage.getItem("aih-atlas-access")==="granted")revealAtlas();
+function initializeAccess() {
+  if(document.body.dataset.publicDemo==="true") { startAtlas(); return; }
+  document.querySelector("#access-form").addEventListener("submit",async event=>{
+    event.preventDefault();
+    const input=document.querySelector("#access-password"),error=document.querySelector("#access-error");
+    if(await sha256(input.value)===ACCESS_PASSWORD_HASH){input.setAttribute("aria-invalid","false");revealAtlas();return;}
+    input.setAttribute("aria-invalid","true");input.value="";error.hidden=false;input.focus();
+  });
+  if(sessionStorage.getItem("aih-atlas-access")==="granted")revealAtlas();
+}
+initializeAccess();

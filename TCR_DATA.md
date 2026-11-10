@@ -2,7 +2,7 @@
 
 The Total T-cell TCR explorer uses `dist/data/t_cells.json`; the existing
 activated CD8 explorer uses `dist/data/cd8_activated.json`. Both preserve the
-frozen source UMAPs and the 34 normalized RNA test genes. The total T-cell
+frozen source UMAPs and the 130 selected normalized RNA demo genes. The total T-cell
 export contains only HET_Liver and DKO_Liver cells, matching the expression
 atlas: 25,952 cells across HET1, HET2, DKO1, and DKO2.
 
@@ -48,7 +48,7 @@ argument limits output to that dataset; omitting it rebuilds all fixtures.
 
 Run `node tests/tcr-expression.test.cjs` for activated CD8 regression checks
 and `node tests/total-tcr.test.cjs` for total T-cell counts, clone membership,
-subsets, and the 34-gene distributions in both grouping modes.
+subsets, and the 130-gene distributions in both grouping modes.
 
 For the initial extension, every original T-cell coordinate, annotation,
 genotype, and normalized gene value was compared with the preceding website

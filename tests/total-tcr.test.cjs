@@ -8,7 +8,7 @@ vm.runInContext(fs.readFileSync(path.join(root, 'dist/tcr-expression.js'), 'utf8
 const api = context.api;
 const data = JSON.parse(fs.readFileSync(path.join(root, 'dist/data/t_cells.json'), 'utf8'));
 assert.equal(data.cells.length, 25952);
-assert.equal(data.genes.length, 34);
+assert.deepEqual(data.genes, JSON.parse(fs.readFileSync(path.join(root, 'demo-genes.json'), 'utf8')).genes);
 assert.equal(data.annotations.length, 10);
 assert.deepEqual(data.expansion_levels, ['Unexpanded', 'Medium', 'Large']);
 const sizes = Object.fromEntries(data.expansion_levels.map((name,index)=>[name,data.cells.filter(r=>r[4]===index).length]));
@@ -19,7 +19,7 @@ assert.equal(data.cells.filter(r=>r[3]===0).length, 15127);
 assert.equal(data.cells.filter(r=>r[3]===1).length, 10825);
 const counts = Array(data.clones.length).fill(0);
 for(const row of data.cells) {
-  assert.equal(row.length,40);
+  assert.equal(row.length,6+data.genes.length);
   assert(row.every(Number.isFinite));
   if(row[5]<0)continue;
   const clone=data.clones[row[5]];
@@ -52,4 +52,4 @@ for(const mode of ['expansion','clones']) {
   assert(!/NaN|Infinity/.test(svg));
   assert.equal((svg.match(/class="violin-point"/g)||[]).length,25952);
 }
-console.log('PASS: total T-cell counts, sample-specific clone membership, all subset labels, 34-gene group membership including zeros, and both violin modes.');
+console.log('PASS: total T-cell counts, sample-specific clone membership, all subset labels, 130-gene group membership including zeros, and both violin modes.');

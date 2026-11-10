@@ -1,0 +1,131 @@
+Gene	Requested panel
+Ace	myeloid_dotplot
+Adgre1	existing_atlas; myeloid_dotplot
+Apoe	myeloid_dotplot
+Arhgap22	myeloid_dotplot
+B2m	inflammatory_heatmap
+C1qa	inflammatory_heatmap
+C1qb	inflammatory_heatmap
+C1qc	inflammatory_heatmap
+C2	inflammatory_heatmap
+C3ar1	myeloid_dotplot
+Cadm1	myeloid_dotplot
+Casp1	inflammatory_heatmap
+Casp4	inflammatory_heatmap
+Ccl19	inflammatory_heatmap
+Ccl2	additional_requested
+Ccl3	activated_cd8_heatmap; myeloid_dotplot
+Ccl4	activated_cd8_heatmap
+Ccl5	inflammatory_heatmap; additional_requested
+Ccr2	existing_atlas; myeloid_dotplot
+Cd200r1	activated_cd8_heatmap
+Cd200r2	activated_cd8_heatmap
+Cd28	activated_cd8_heatmap
+Cd300e	myeloid_dotplot
+Cd3d	existing_atlas
+Cd3e	existing_atlas
+Cd4	existing_atlas
+Cd5l	myeloid_dotplot
+Cd74	inflammatory_heatmap
+Cd8a	existing_atlas
+Cdk14	myeloid_dotplot
+Cfp	inflammatory_heatmap
+Clec4b1	myeloid_dotplot
+Clec4f	existing_atlas; myeloid_dotplot
+Csf1r	myeloid_dotplot
+Cx3cr1	activated_cd8_heatmap; myeloid_dotplot
+Cxcl10	existing_atlas; inflammatory_heatmap
+Cxcl2	inflammatory_heatmap
+Cxcl9	inflammatory_heatmap
+Cxcr6	existing_atlas
+Dgkh	additional_requested
+Ear2	myeloid_dotplot
+Eomes	activated_cd8_heatmap
+Fasl	activated_cd8_heatmap
+Fcgr1	myeloid_dotplot
+Fcgr4	myeloid_dotplot
+Foxp3	existing_atlas
+Gsdmd	inflammatory_heatmap
+Gzma	activated_cd8_heatmap
+Gzmb	existing_atlas; activated_cd8_heatmap
+Gzmk	existing_atlas; activated_cd8_heatmap
+H2-Aa	inflammatory_heatmap
+H2-Ab1	inflammatory_heatmap
+H2-D1	inflammatory_heatmap
+H2-K1	inflammatory_heatmap
+H2-Q4	inflammatory_heatmap
+H2-Q7	inflammatory_heatmap
+Id2	myeloid_dotplot
+Id3	myeloid_dotplot
+Ifit1	inflammatory_heatmap
+Ifit3	inflammatory_heatmap
+Ifng	existing_atlas; activated_cd8_heatmap
+Il12b	inflammatory_heatmap
+Il18rap	activated_cd8_heatmap
+Il1b	inflammatory_heatmap
+Il27	existing_atlas; inflammatory_heatmap
+Il27ra	existing_atlas
+Il6	additional_requested
+Il7r	existing_atlas
+Irak4	inflammatory_heatmap
+Irf1	inflammatory_heatmap
+Irf7	inflammatory_heatmap
+Isg15	existing_atlas; inflammatory_heatmap
+Itga1	activated_cd8_heatmap
+Klf2	activated_cd8_heatmap
+Klrb1c	additional_requested
+Klrg1	existing_atlas; activated_cd8_heatmap
+Lag3	activated_cd8_heatmap
+Ldlr	myeloid_dotplot
+Ly6a	activated_cd8_heatmap
+Ly6c2	existing_atlas; activated_cd8_heatmap; myeloid_dotplot
+Lyz2	existing_atlas
+Mafb	myeloid_dotplot
+Marco	existing_atlas
+Mertk	myeloid_dotplot
+Ms4a1	existing_atlas
+Myd88	inflammatory_heatmap
+Negr1	myeloid_dotplot
+Nfkb2	inflammatory_heatmap
+Nfkbiz	inflammatory_heatmap
+Nkg7	existing_atlas; additional_requested
+Nlrp1a	inflammatory_heatmap
+Nod1	inflammatory_heatmap
+Nr4a1	additional_requested
+Nr4a2	additional_requested
+Nr4a3	additional_requested
+Oas1a	inflammatory_heatmap
+Oas3	inflammatory_heatmap
+P2rx7	activated_cd8_heatmap
+Pdcd1	existing_atlas; activated_cd8_heatmap
+Pglyrp1	myeloid_dotplot
+Pparg	myeloid_dotplot
+Ptprc	existing_atlas
+Relb	inflammatory_heatmap
+Ripk2	inflammatory_heatmap
+S100a6	myeloid_dotplot
+S100a8	existing_atlas
+S100a9	existing_atlas
+S1pr1	activated_cd8_heatmap
+S1pr5	activated_cd8_heatmap
+Sell	myeloid_dotplot
+Slamf6	existing_atlas; activated_cd8_heatmap
+Slamf7	myeloid_dotplot
+Slamf8	myeloid_dotplot
+Slamf9	existing_atlas; myeloid_dotplot
+Spn	myeloid_dotplot
+Stat1	existing_atlas; inflammatory_heatmap
+Syne1	myeloid_dotplot
+Tbx21	activated_cd8_heatmap
+Tcf7	existing_atlas; activated_cd8_heatmap
+Tigit	activated_cd8_heatmap
+Timd4	myeloid_dotplot
+Tnf	existing_atlas; activated_cd8_heatmap
+Tnfrsf9	activated_cd8_heatmap
+Tox	existing_atlas; activated_cd8_heatmap
+Vcan	myeloid_dotplot
+Vsig4	myeloid_dotplot
+Xcr1	existing_atlas
+Zbp1	inflammatory_heatmap
+Zeb2	activated_cd8_heatmap
+Zfp683	activated_cd8_heatmap
